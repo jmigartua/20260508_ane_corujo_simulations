@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="author" content="Josu (with Bolu)">
+<meta name="author" content="Josu +">
 <meta name="dcterms.date" content="2026-05-13">
 
 <title>A guide to this repository, for Ane</title>
@@ -2383,7 +2383,7 @@ window.Quarto = {
   <div class="quarto-title-meta-heading">Affiliation</div>
   
     <div class="quarto-title-meta-contents">
-    <p class="author">Josu (with Bolu) </p>
+    <p class="author">Josu + </p>
   </div>
   <div class="quarto-title-meta-contents">
         <p class="affiliation">
@@ -2427,8 +2427,8 @@ window.Quarto = {
 </div>
 </div>
 <blockquote class="blockquote">
-<p>Ane, this whole repository is built on top of your work. The code you sent me already had every load-bearing physical insight — the patched solver, the aperture filter, the dispersion model, the surface profile, the polarisation averaging, the comparison protocol against FTIR triples. What I did was <em>re-house</em> it so it could be swept systematically, <em>quantify</em> what counts as a good fit, and <em>characterise</em> the boundary where the model stops being trustworthy. That boundary turned out to coincide exactly with where your AJUSTE PDF reports its results — at θ = 30° — and the parameter configuration my sweep landed on is the parameter configuration you committed to empirically.</p>
-<p>If you find the rest of this useful, the next move I would suggest is parked research item γ′ — the Cr₂O₃ phonon-aware k(λ) — because that is the single largest residual driver and the one improvement that would let Stage 2 and Stage 3 land at meaningful values rather than fitting around oxide error. Anything else here, ask me.</p>
+<p>Ane, this whole repository is built on top of your work. The code you sent me already had every load-bearing physical insight — the patched solver, the aperture filter, the dispersion model, the surface profile, the polarisation averaging, the comparison protocol against FTIR triples. What I did was <em>re-house</em> it so it could be swept systematically, <em>quantify</em> what counts as a good fit, and <em>characterise</em> the boundary where the model stops being trustworthy. That boundary turned out to coincide exactly with where your AJUSTE PDF reports its results — at <span class="math inline">\(\theta\)</span> = 30° — and the parameter configuration my sweep landed on is the parameter configuration you committed to empirically.</p>
+<p>If you find the rest of this useful, the next move I would suggest is parked research item <span class="math inline">\(\gamma\)</span>′ — the Cr<span class="math inline">\(_{2}\)</span>O<span class="math inline">\(_{3}\)</span> phonon-aware <span class="math inline">\(k(\lambda)\)</span> — because that is the single largest residual driver and the one improvement that would let Stage 2 and Stage 3 land at meaningful values rather than fitting around oxide error. Anything else here, ask me.</p>
 <p>— Josu</p>
 </blockquote>
 <section id="what-this-document-is-and-how-to-read-it" class="level2">
@@ -2439,7 +2439,7 @@ window.Quarto = {
 <ol type="1">
 <li><p><strong>Everything you sent me is preserved untouched.</strong> Your <code>.ipynb</code> files, the CSVs, the paper, the patched <code>solver.py</code> / <code>harmonics.py</code> — they all live verbatim in <a href="20260508_messages/"><code>20260508_messages/</code></a> and <a href="ane_originals/"><code>ane_originals/</code></a>. Nothing of yours was modified. The “active” code in <a href="simulation/"><code>simulation/</code></a> is a <em>parallel</em> reorganised version that calls into the same physics.</p></li>
 <li><p><strong>I did not change any physics that you wrote.</strong> The RCWA solve cell in <a href="simulation/lib/sweep_runner.py"><code>simulation/lib/sweep_runner.py</code></a> is a line-by-line port of your <code>test8.qmd §5</code>. The differences are <em>structural</em> (turning your cell into a function, persisting outputs, parameterising inputs), not physical.</p></li>
-<li><p><strong>The big result is at the end</strong> — see §10. To save you scrolling: at <strong>θ = 30° on sample SS_12-3</strong> the simulation reproduces your experimental FTIR with <strong>Pearson r ≥ 0.95</strong> across all five azimuths, and the parameter configuration that achieves this <strong>matches your empirical fit exactly</strong> (t_oxide = 0.9 µm, β = 2°, HS_caliente — see page 10 of your AJUSTE PDF). Outside θ ≤ 30° the model has a clear physics limitation that I have characterised but not solved — see §9.</p></li>
+<li><p><strong>The big result is at the end</strong> — see §10. To save you scrolling: at <strong><span class="math inline">\(\theta\)</span> = 30° on sample SS_12-3</strong> the simulation reproduces your experimental FTIR with <strong>Pearson r <span class="math inline">\(\geq\)</span> 0.95</strong> across all five azimuths, and the parameter configuration that achieves this <strong>matches your empirical fit exactly</strong> (<span class="math inline">\(t_{\text{oxide}}\)</span> = 0.9 µm, <span class="math inline">\(\beta\)</span> = 2°, HS_caliente — see page 10 of your AJUSTE PDF). Outside <span class="math inline">\(\theta\)</span> <span class="math inline">\(\leq\)</span> 30° the model has a clear physics limitation that I have characterised but not solved — see §9.</p></li>
 </ol>
 <hr>
 </section>
@@ -2454,11 +2454,11 @@ window.Quarto = {
 <li><a href="#6-phase-5--the-staged-sweep-run-by-run">6. Phase 5 — The staged sweep, run by run</a>
 <ul>
 <li><a href="#61-stage-0a--harmonics-count-convergence">6.1 Stage 0a — Harmonics-count convergence</a></li>
-<li><a href="#62-stage-0b--φ-convention-sanity-check">6.2 Stage 0b — φ-convention sanity check</a></li>
+<li><a href="#62-stage-0b--$\varphi$-convention-sanity-check">6.2 Stage 0b — <span class="math inline">\(\varphi\)</span>-convention sanity check</a></li>
 <li><a href="#63-stage-1--universal-tier-1-sweep">6.3 Stage 1 — Universal Tier-1 sweep</a></li>
 <li><a href="#64-the-double-sinusoid-follow-up">6.4 The double-sinusoid follow-up</a></li>
 </ul></li>
-<li><a href="#7-phase-6--θ-φ-validation-and-the-wall-the-model-hit">7. Phase 6 — (θ, φ) validation, and the wall the model hit</a></li>
+<li><a href="#7-phase-6--$\theta$-$\varphi$-validation-and-the-wall-the-model-hit">7. Phase 6 — (<span class="math inline">\(\theta\)</span>, <span class="math inline">\(\varphi\)</span>) validation, and the wall the model hit</a></li>
 <li><a href="#8-phase-7--two-structural-diagnostics-that-ruled-themselves-out">8. Phase 7 — Two structural diagnostics that ruled themselves out</a></li>
 <li><a href="#9-phase-8--domain-of-validity">9. Phase 8 — Domain of validity</a></li>
 <li><a href="#10-where-this-leaves-us-bottom-line">10. Where this leaves us (bottom line)</a></li>
@@ -2494,30 +2494,30 @@ window.Quarto = {
 </tr>
 <tr class="odd">
 <td><a href="20260508_messages/SS_letter%20(1).csv"><code>SS_letter (1).csv</code></a></td>
-<td>Stainless-steel complex permittivity ε(ν̃), 400–7000 cm⁻¹</td>
+<td>Stainless-steel complex permittivity <span class="math inline">\(\varepsilon\)</span>(<span class="math inline">\(\tilde{\nu}\)</span>), 400–7000 cm⁻¹</td>
 <td>Substrate material data</td>
 </tr>
 <tr class="even">
 <td><a href="20260508_messages/calientes_cromo.csv"><code>calientes_cromo.csv</code></a></td>
-<td>Cr₂O₃ (n, k) for <strong>HS</strong> films (substrate heated to 300 °C)</td>
+<td>Cr<span class="math inline">\(_{2}\)</span>O<span class="math inline">\(_{3}\)</span> (n, k) for <strong>HS</strong> films (substrate heated to 300 °C)</td>
 <td>Oxide overlayer for “hot” films</td>
 </tr>
 <tr class="odd">
 <td><a href="20260508_messages/indices_cromo.csv"><code>indices_cromo.csv</code></a></td>
-<td>Cr₂O₃ (n, k) for <strong>RS</strong> films (unheated substrate)</td>
+<td>Cr<span class="math inline">\(_{2}\)</span>O<span class="math inline">\(_{3}\)</span> (n, k) for <strong>RS</strong> films (unheated substrate)</td>
 <td>Oxide overlayer for “cold” films</td>
 </tr>
 <tr class="even">
 <td><a href="20260508_messages/paper_datos_cromo.pdf"><code>paper_datos_cromo.pdf</code></a></td>
 <td>Al-Kuhaili &amp; Durrani, <em>Optical Materials</em> 29 (2007) 709–713</td>
-<td>Source of the Cr₂O₃ dispersion model</td>
+<td>Source of the Cr<span class="math inline">\(_{2}\)</span>O<span class="math inline">\(_{3}\)</span> dispersion model</td>
 </tr>
 </tbody>
 </table>
 <p>And two <strong>patched Python files</strong> (inlined into your email, not standalone): <code>solver.py</code> and <code>harmonics.py</code>, modifications of the upstream <a href="https://rcwa.readthedocs.io"><code>rcwa</code></a> package adding two things:</p>
 <ol type="1">
 <li><strong>Exit-angle tracking</strong> — <code>Solver.theta_orders</code>, the polar angle of every diffraction order <em>m</em> given the current source and grating.</li>
-<li><strong>A detected-reflectance aperture filter</strong> — <code>Solver.get_detected_reflectance(beta_deg)</code>, which sums <code>R_m</code> only over the orders that fall inside ±β/2 of the specular direction.</li>
+<li><strong>A detected-reflectance aperture filter</strong> — <code>Solver.get_detected_reflectance(beta_deg)</code>, which sums <code>R_m</code> only over the orders that fall inside <span class="math inline">\(\pm\beta\)</span>/2 of the specular direction.</li>
 </ol>
 <p>That second feature turned out to be load-bearing for everything that followed — see §3 below.</p>
 <p>I also have your two PDFs in <a href="ane_originals/"><code>ane_originals/</code></a>: <strong>AJUSTE DE PARÁMETROS — PROGRAMA EDMUNDS</strong> and <strong>Tratamiento de imágenes. Modelos y comparación con medidas experimentales</strong>. Reading those carefully is what allowed me to recognise, at the end of the run, that my best-fit parameters and yours were the same parameters.</p>
@@ -2535,7 +2535,7 @@ window.Quarto = {
 </section>
 <section id="whats-in-it" class="level3">
 <h3 class="anchored" data-anchor-id="whats-in-it">What’s in it</h3>
-<p>A file-by-file inventory, the physics chain in one diagram, the Cr₂O₃ optical model laid out from the paper, and <strong>10 catalogued issues</strong> with severity tags (HIGH / MED / LOW). Worth your attention in particular:</p>
+<p>A file-by-file inventory, the physics chain in one diagram, the Cr<span class="math inline">\(_{2}\)</span>O<span class="math inline">\(_{3}\)</span> optical model laid out from the paper, and <strong>10 catalogued issues</strong> with severity tags (HIGH / MED / LOW). Worth your attention in particular:</p>
 <table class="caption-top table">
 <thead>
 <tr class="header">
@@ -2547,7 +2547,7 @@ window.Quarto = {
 <tbody>
 <tr class="odd">
 <td><strong>HIGH (physics)</strong></td>
-<td>The Cr₂O₃ k(λ) model is the Al-Kuhaili sub-bandgap tail fitted on <strong>0.3–2.5 µm transmittance</strong>. You and I use it on <strong>3–25 µm</strong> — that’s a 10× extrapolation outside the fit range, and the model contains <strong>zero phonon physics</strong>. This was the single most-likely structural error, and §10 confirms it turned out to be load-bearing.</td>
+<td>The Cr<span class="math inline">\(_{2}\)</span>O<span class="math inline">\(_{3}\)</span> <span class="math inline">\(k(\lambda)\)</span> model is the Al-Kuhaili sub-bandgap tail fitted on <strong>0.3–2.5 µm transmittance</strong>. You and I use it on <strong>3–25 µm</strong> — that’s a 10× extrapolation outside the fit range, and the model contains <strong>zero phonon physics</strong>. This was the single most-likely structural error, and §10 confirms it turned out to be load-bearing.</td>
 <td><a href="ANALYSIS.md"><code>ANALYSIS.md §4</code></a>, §6.3</td>
 </tr>
 <tr class="even">
@@ -2557,7 +2557,7 @@ window.Quarto = {
 </tr>
 <tr class="odd">
 <td><strong>MED (physics)</strong></td>
-<td>The oxide is applied as a <em>vertical band</em> above the local metal column, not normal-to-the-surface. On a sinusoid with depth 3 µm and period 13 µm the surface slope reaches ≈ 36°; a real oxide grown perpendicular to the surface has up to 25 % more vertical extent on the slopes. Effect is ≈ proportional to oxide thickness.</td>
+<td>The oxide is applied as a <em>vertical band</em> above the local metal column, not normal-to-the-surface. On a sinusoid with depth 3 µm and period 13 µm the surface slope reaches <span class="math inline">\(\approx\)</span> 36°; a real oxide grown perpendicular to the surface has up to 25 % more vertical extent on the slopes. Effect is <span class="math inline">\(\approx\)</span> proportional to oxide thickness.</td>
 <td><a href="ANALYSIS.md"><code>ANALYSIS.md §6.4</code></a></td>
 </tr>
 <tr class="even">
@@ -2589,7 +2589,7 @@ window.Quarto = {
 </section>
 <section id="one-subtlety-from-7-worth-flagging" class="level3">
 <h3 class="anchored" data-anchor-id="one-subtlety-from-7-worth-flagging">One subtlety from §7 worth flagging</h3>
-<p>The paper’s claim “n_HS &gt; n_RS” is true near the absorption edge — that’s the regime the paper actually fitted. In our IR regime, the <em>empirical sub-bandgap tail</em> of the model gives <strong>k_RS &gt; k_HS</strong>, which is <strong>the opposite trend</strong>. Real Cr₂O₃ in the mid-IR is dominated by <strong>phonons</strong> that the empirical tail does not contain, so this reversal is an artefact of the extrapolation, not a measured property. I flag it here because, if ever you compare HS vs RS at long λ, the relative ordering you see is the parametrised tail, not real material physics. (See §10 — this turned out to matter.)</p>
+<p>The paper’s claim “n_HS &gt; n_RS” is true near the absorption edge — that’s the regime the paper actually fitted. In our IR regime, the <em>empirical sub-bandgap tail</em> of the model gives <strong>k_RS &gt; k_HS</strong>, which is <strong>the opposite trend</strong>. Real Cr<span class="math inline">\(_{2}\)</span>O<span class="math inline">\(_{3}\)</span> in the mid-IR is dominated by <strong>phonons</strong> that the empirical tail does not contain, so this reversal is an artefact of the extrapolation, not a measured property. I flag it here because, if ever you compare HS vs RS at long <span class="math inline">\(\lambda\)</span>, the relative ordering you see is the parametrised tail, not real material physics. (See §10 — this turned out to matter.)</p>
 <hr>
 </section>
 </section>
@@ -2621,24 +2621,24 @@ window.Quarto = {
 <p>with <span class="math inline">\(\sigma_{\bar R}\)</span> the standard error of the mean across your 3 FTIR repeats, <span class="math inline">\(\sigma_{\text{floor}} = 0.01\)</span> (1 % absolute), <span class="math inline">\(k\)</span> the number of free parameters in the current optimisation, and <span class="math inline">\(N\)</span> the number of wavelength points in the overlap of the simulation grid and the experimental grid.</p>
 <p>This is just reduced chi-squared with a sensible noise floor. The two nuances:</p>
 <ul>
-<li><strong>Divide by SEM, not std.</strong> That gives χ²_red ≈ 1 a physical meaning: “the simulation sits within experimental scatter, on average”.</li>
+<li><strong>Divide by SEM, not std.</strong> That gives <span class="math inline">\(\chi^{2}_{\text{red}}\)</span> <span class="math inline">\(\approx\)</span> 1 a physical meaning: “the simulation sits within experimental scatter, on average”.</li>
 <li><strong>Floor at 1 %.</strong> With only 3 repeats, sample std collapses at bins where the repeats happen to coincide. The floor encodes the prior that no FTIR bin is intrinsically more precise than ~1 % absolute reflectance.</li>
 </ul>
 </section>
 <section id="the-very-first-comparison-run-and-why-it-changed-everything" class="level3">
 <h3 class="anchored" data-anchor-id="the-very-first-comparison-run-and-why-it-changed-everything">The very first comparison run — and why it changed everything</h3>
-<p>I ran your <code>test8</code> defaults (<code>t_oxide = 0.9 µm</code>, NA = 35, θ = 30°, φ_sim = 89°) once and computed two scalars: one comparing <strong>R_total</strong> (sum over all propagating diffraction orders) against your FTIR triple <code>12-3_30_0_*.CSV</code>, and one comparing <strong>R_det(β = 2°)</strong> (your patched aperture filter, summing only orders within ±1° of specular):</p>
+<p>I ran your <code>test8</code> defaults (<code>t_oxide = 0.9 µm</code>, NA = 35, <span class="math inline">\(\theta\)</span> = 30°, <span class="math inline">\(\varphi_{\text{sim}}\)</span> = 89°) once and computed two scalars: one comparing <strong><span class="math inline">\(R_{\text{total}}\)</span></strong> (sum over all propagating diffraction orders) against your FTIR triple <code>12-3_30_0_*.CSV</code>, and one comparing <strong><span class="math inline">\(R_{\text{det}}(\beta = 2^{\circ})\)</span></strong> (your patched aperture filter, summing only orders within $$1° of specular):</p>
 <table class="caption-top table">
 <thead>
 <tr class="header">
 <th>Metric</th>
-<th style="text-align: right;">R_total</th>
-<th style="text-align: right;">R_det β = 2°</th>
+<th style="text-align: right;"><span class="math inline">\(R_{\text{total}}\)</span></th>
+<th style="text-align: right;"><span class="math inline">\(R_{\text{det}}\)</span> <span class="math inline">\(\beta\)</span> = 2°</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>χ²_red</td>
+<td><span class="math inline">\(\chi^{2}_{\text{red}}\)</span></td>
 <td style="text-align: right;">749</td>
 <td style="text-align: right;"><strong>137</strong></td>
 </tr>
@@ -2665,8 +2665,8 @@ window.Quarto = {
 </tbody>
 </table>
 <p><code>R_det(β = 2°)</code> crushes <code>R_total</code> on every metric. The Pearson correlation jumps from 0.83 to <strong>0.97</strong> — meaning the <em>shape</em> of your simulated curve already tracks the experiment closely; the disagreement is almost entirely a uniform amplitude offset.</p>
-<p><strong>Conclusion that fell out immediately:</strong> the FTIR detector is <strong>aperture-limited</strong>, not hemispherical. The 6 percentage-point uniform offset between <span class="math inline">\(\langle R_{\det} \rangle \approx 0.60\)</span> and <span class="math inline">\(\langle R_{\exp} \rangle \approx 0.54\)</span> is exactly the residual we want the sweep to close. Which means <strong>the right observable to compare against the experiment is <code>R_det(β)</code>, with β found by the sweep, never <code>R_total</code>.</strong></p>
-<p>This is the single most important piece of advice I would offer for any future FTIR comparison: pick a β, sweep over it, never default to <code>R_total</code>.</p>
+<p><strong>Conclusion that fell out immediately:</strong> the FTIR detector is <strong>aperture-limited</strong>, not hemispherical. The 6 percentage-point uniform offset between <span class="math inline">\(\langle R_{\det} \rangle \approx 0.60\)</span> and <span class="math inline">\(\langle R_{\exp} \rangle \approx 0.54\)</span> is exactly the residual we want the sweep to close. Which means <strong>the right observable to compare against the experiment is <code>R_det(β)</code>, with <span class="math inline">\(\beta\)</span> found by the sweep, never <code>R_total</code>.</strong></p>
+<p>This is the single most important piece of advice I would offer for any future FTIR comparison: pick a <span class="math inline">\(\beta\)</span>, sweep over it, never default to <code>R_total</code>.</p>
 <hr>
 </section>
 </section>
@@ -2674,7 +2674,7 @@ window.Quarto = {
 <h2 class="anchored" data-anchor-id="phase-3-configuration-space-framework-2026-05-08">4. Phase 3 — Configuration-space framework (2026-05-08)</h2>
 <section id="why-this-came-next-1" class="level3">
 <h3 class="anchored" data-anchor-id="why-this-came-next-1">Why this came next</h3>
-<p>Knowing we needed to minimise χ²_red doesn’t tell us <em>which parameters to vary</em>. A naïve Cartesian sweep over every plausible knob is intractable. We need a principled tiering.</p>
+<p>Knowing we needed to minimise <span class="math inline">\(\chi^{2}_{\text{red}}\)</span> doesn’t tell us <em>which parameters to vary</em>. A naïve Cartesian sweep over every plausible knob is intractable. We need a principled tiering.</p>
 </section>
 <section id="what-i-built-1" class="level3">
 <h3 class="anchored" data-anchor-id="what-i-built-1">What I built</h3>
@@ -2685,14 +2685,14 @@ window.Quarto = {
 <p>A configuration-space dimension only earns its slot if it is <strong>(i) genuinely uncertain</strong>, <strong>(ii) measurably affects the simulation output</strong>, and <strong>(iii) physically meaningful</strong> — i.e. learning its best value teaches us something. By that test:</p>
 <ul>
 <li><strong>Tier 1 — must sweep.</strong> <code>t_oxide</code> (your oxide thickness was a placeholder), <code>β</code> (detector aperture, the dominant residual driver per §3), <code>oxide_dispersion</code> (categorical: HS / RS / [phonon-aware model when we have one]).</li>
-<li><strong>Tier 2 — sweep with tight priors.</strong> <code>period_um</code> (your AFM gives 12.85 ± 0.05 µm), <code>depth_um</code> (AFM gives 2.40 µm, sinusoid amplitude fit gives 2.52 µm — wider prior).</li>
+<li><strong>Tier 2 — sweep with tight priors.</strong> <code>period_um</code> (your AFM gives 12.85 <span class="math inline">\(\pm\)</span> 0.05 µm), <code>depth_um</code> (AFM gives 2.40 µm, sinusoid amplitude fit gives 2.52 µm — wider prior).</li>
 <li><strong>Tier 3 — set, don’t sweep.</strong> <code>harmonics</code> (a convergence parameter, not a fit parameter), <code>slices</code>, <code>theta</code>/<code>phi_exp</code> (these are the <em>conditions</em> under which we evaluate the simulation, not knobs), <code>phi_sim − phi_exp</code> convention (a discrete coordinate choice, fix after one sanity check), <code>ur</code> (truly fixed for non-magnetic materials).</li>
 <li><strong>Tier 4 — exclude.</strong> An overall <code>R_scale</code> calibration factor would absorb the very offsets we want to <em>identify</em>; introducing it now would hide which Tier-1 knob is the real culprit.</li>
 </ul>
 </section>
 <section id="universal-vs-per-sample" class="level3">
 <h3 class="anchored" data-anchor-id="universal-vs-per-sample">Universal vs per-sample</h3>
-<p>Crucially, some parameters should be <em>the same across all six samples</em> (instrument + material constants — β, oxide dispersion, possibly t_oxide) and some are <em>per-sample</em> (period and depth from the AFM of each plate). The sweep architecture is therefore hierarchical:</p>
+<p>Crucially, some parameters should be <em>the same across all six samples</em> (instrument + material constants — <span class="math inline">\(\beta\)</span>, oxide dispersion, possibly <span class="math inline">\(t_{\text{oxide}}\)</span>) and some are <em>per-sample</em> (period and depth from the AFM of each plate). The sweep architecture is therefore hierarchical:</p>
 <ul>
 <li><strong>Outer loop</strong> — universal Tier-1 parameters.</li>
 <li><strong>Inner loop</strong> — per-sample Tier-2 geometry, refit per sample under the locked universal parameters.</li>
@@ -2700,7 +2700,7 @@ window.Quarto = {
 </section>
 <section id="the-staged-sweep" class="level3">
 <h3 class="anchored" data-anchor-id="the-staged-sweep">The staged sweep</h3>
-<p>Naïvely the cost is multiplicative (6 samples × 15 (θ, φ) × universal cube) and runs to weeks. Factored by stage, the cost becomes tractable:</p>
+<p>Naïvely the cost is multiplicative (6 samples × 15 (<span class="math inline">\(\theta\)</span>, <span class="math inline">\(\varphi\)</span>) × universal cube) and runs to weeks. Factored by stage, the cost becomes tractable:</p>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 20%">
@@ -2721,42 +2721,42 @@ window.Quarto = {
 <tbody>
 <tr class="odd">
 <td><strong>0a</strong> convergence</td>
-<td>Smallest NA at which R_det is stable</td>
+<td>Smallest NA at which <span class="math inline">\(R_{\text{det}}\)</span> is stable</td>
 <td><code>harmonics</code></td>
-<td>one (θ, φ)</td>
+<td>one (<span class="math inline">\(\theta\)</span>, <span class="math inline">\(\varphi\)</span>)</td>
 <td>8</td>
 </tr>
 <tr class="even">
-<td><strong>0b</strong> φ convention</td>
-<td>Confirm φ_sim ↔︎ φ_exp mapping</td>
+<td><strong>0b</strong> <span class="math inline">\(\varphi\)</span> convention</td>
+<td>Confirm <span class="math inline">\(\varphi_{\text{sim}}\)</span> ↔︎ <span class="math inline">\(\varphi_{\text{exp}}\)</span> mapping</td>
 <td><code>phi_sim</code></td>
-<td>one (θ, φ)</td>
+<td>one (<span class="math inline">\(\theta\)</span>, <span class="math inline">\(\varphi\)</span>)</td>
 <td>4</td>
 </tr>
 <tr class="odd">
 <td><strong>1</strong> universal Tier-1</td>
-<td>Best (t_oxide, β, oxide_dispersion)</td>
+<td>Best (<span class="math inline">\(t_{\text{oxide}}\)</span>, <span class="math inline">\(\beta\)</span>, oxide_dispersion)</td>
 <td>Tier 1</td>
-<td>one (θ, φ), one sample</td>
+<td>one (<span class="math inline">\(\theta\)</span>, <span class="math inline">\(\varphi\)</span>), one sample</td>
 <td>84</td>
 </tr>
 <tr class="even">
 <td><strong>2</strong> per-sample geometry</td>
 <td>Best (period, depth) for SS_12-3</td>
 <td>Tier 2</td>
-<td>all 15 (θ, φ)</td>
+<td>all 15 (<span class="math inline">\(\theta\)</span>, <span class="math inline">\(\varphi\)</span>)</td>
 <td>375</td>
 </tr>
 <tr class="odd">
 <td><strong>3</strong> generalisation</td>
 <td>Validate Tier-1 across the other 5 samples</td>
 <td>Tier 2, per sample</td>
-<td>all 15 (θ, φ) × 5</td>
+<td>all 15 (<span class="math inline">\(\theta\)</span>, <span class="math inline">\(\varphi\)</span>) × 5</td>
 <td>1875</td>
 </tr>
 </tbody>
 </table>
-<p>With decision points between stages. The single non-negotiable one: <strong>after Stage 1, if best χ²_red ≫ 1, do not proceed to Stage 2</strong> — the bottleneck is structural and Stage 2 would absorb model error into geometry parameters. (Spoiler: it did, and we did not proceed.)</p>
+<p>With decision points between stages. The single non-negotiable one: <strong>after Stage 1, if best <span class="math inline">\(\chi^{2}_{\text{red}}\)</span> <span class="math inline">\(\gg\)</span> 1, do not proceed to Stage 2</strong> — the bottleneck is structural and Stage 2 would absorb model error into geometry parameters. (Spoiler: it did, and we did not proceed.)</p>
 <p>This staging is what made the campaign finishable in a long weekend rather than a month.</p>
 <hr>
 </section>
@@ -2775,7 +2775,7 @@ window.Quarto = {
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>load_experimental_repeats(sample, θ, φ_exp)    <span class="co"># mean + SEM across the 3 FTIR CSVs</span></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>score(sim_df, sample, …)                       <span class="co"># χ²_red, RMSE, MAE, Pearson, … for R and R_det</span></span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>run_one_config(cfg, …)                         <span class="co"># solve + score + persist + return one row</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p><code>SimConfig</code> is a frozen dataclass that names every parameter the simulation needs (period, A, t_oxide, oxide_dispersion, θ, φ_sim, harmonics, slices, β, A₂, φ₂, semi_infinite_substrate, wavelengths). The filename stem is derived from the config, so every run is uniquely identified on disk — this matters because the sweep is restartable.</p>
+<p><code>SimConfig</code> is a frozen dataclass that names every parameter the simulation needs (period, A, <span class="math inline">\(t_{\text{oxide}}\)</span>, oxide_dispersion, <span class="math inline">\(\theta\)</span>, <span class="math inline">\(\varphi_{\text{sim}}\)</span>, harmonics, slices, <span class="math inline">\(\beta\)</span>, <span class="math inline">\(A_2\)</span>, <span class="math inline">\(\varphi_2\)</span>, semi_infinite_substrate, wavelengths). The filename stem is derived from the config, so every run is uniquely identified on disk — this matters because the sweep is restartable.</p>
 <p><strong>The physics inside <code>solve_one()</code> is your <code>test8.qmd §5</code> cell, line by line.</strong> I moved it into a function and removed the magic-number defaults, but <code>discretize_with_oxide</code>, the <code>LayerStack</code> construction, the <code>Source</code> parameters, and the <code>Solver.solve()</code> call are unchanged. Where the active code diverges from yours, it is structural (function, not script; parameterised, not hard-coded; persisted, not transient). The numbers should be identical to your <code>test8</code> for matching parameters; I verified this in the smoke test.</p>
 </section>
 <section id="two-paradigms-one-project" class="level3">
@@ -2800,15 +2800,15 @@ window.Quarto = {
 <p>Everything below was run on this MacBook, Python 3.12, <code>rcwa 1.0.48</code> in <a href=".venv/"><code>.venv/</code></a>, on 2026-05-09. The wall times include I/O. Every run’s command, wall time, parameters, and key numbers are recorded in <a href="RUN_LOG.md"><code>RUN_LOG.md</code></a> — what follows is the narrative.</p>
 <section id="stage-0a-harmonics-count-convergence" class="level3">
 <h3 class="anchored" data-anchor-id="stage-0a-harmonics-count-convergence">6.1 Stage 0a — Harmonics-count convergence</h3>
-<p><strong>The question.</strong> What is the smallest harmonics count NA such that <code>R_det(λ; NA)</code> is stable across the full 3–25 µm band to better than the 1 % σ-floor? Without this answer, every other axis of the sweep would be fitting around a numerical artefact.</p>
-<p><strong>Setup.</strong> Centre of the cube (t_oxide = 0.30 µm placeholder, β = 2°, HS_caliente, θ = 30°, φ_sim = 89°). Eight NA values: 15, 19, 23, 27, 31, 35, 39, 51.</p>
+<p><strong>The question.</strong> What is the smallest harmonics count NA such that <code>R_det(λ; NA)</code> is stable across the full 3–25 µm band to better than the 1 % <span class="math inline">\(\sigma\)</span>-floor? Without this answer, every other axis of the sweep would be fitting around a numerical artefact.</p>
+<p><strong>Setup.</strong> Centre of the cube (<span class="math inline">\(t_{\text{oxide}}\)</span> = 0.30 µm placeholder, <span class="math inline">\(\beta\)</span> = 2°, HS_caliente, <span class="math inline">\(\theta\)</span> = 30°, <span class="math inline">\(\varphi_{\text{sim}}\)</span> = 89°). Eight NA values: 15, 19, 23, 27, 31, 35, 39, 51.</p>
 <p><strong>Run.</strong> <a href="simulation/sweep/bin/run_stage0a.py"><code>simulation/sweep/bin/run_stage0a.py</code></a> — 8 configs, 4 workers, <strong>17.1 min wall</strong>.</p>
 <p><strong>Result.</strong></p>
 <table class="caption-top table">
 <thead>
 <tr class="header">
 <th style="text-align: right;">NA</th>
-<th style="text-align: right;">max|R_det(NA) − R_det(51)|</th>
+<th style="text-align: right;">max|<span class="math inline">\(R_{\text{det}}\)</span>(NA) − <span class="math inline">\(R_{\text{det}}\)</span>(51)|</th>
 </tr>
 </thead>
 <tbody>
@@ -2846,14 +2846,14 @@ window.Quarto = {
 </tr>
 </tbody>
 </table>
-<p><strong>Decision.</strong> <strong>NA = 39.</strong> Smallest grid value where the band-max disagreement with NA = 51 is below the 1 % σ-floor. Locked for every subsequent stage.</p>
-<p><strong>Aside.</strong> Your note in the original notebook said <em>“a partir de 27; pero mejor usar 31”</em> — that was for the broad-cone problem; once we restrict to R_det(β = 2°) the cone is narrow enough that NA = 31 still leaves a 2.7 % residual at long λ, and NA = 39 is needed to get under 1 %. Your eye was right; the floor was just slightly tighter than your visual criterion.</p>
+<p><strong>Decision.</strong> <strong>NA = 39.</strong> Smallest grid value where the band-max disagreement with NA = 51 is below the 1 % <span class="math inline">\(\sigma\)</span>-floor. Locked for every subsequent stage.</p>
+<p><strong>Aside.</strong> Your note in the original notebook said <em>“a partir de 27; pero mejor usar 31”</em> — that was for the broad-cone problem; once we restrict to <span class="math inline">\(R_{\text{det}}(\beta = 2^{\circ})\)</span> the cone is narrow enough that NA = 31 still leaves a 2.7 % residual at long <span class="math inline">\(\lambda\)</span>, and NA = 39 is needed to get under 1 %. Your eye was right; the floor was just slightly tighter than your visual criterion.</p>
 <p>The detailed report: <a href="simulation/sweep/reports/stage0a_report.qmd"><code>simulation/sweep/reports/stage0a_report.qmd</code></a>.</p>
 </section>
 <section id="stage-0b-φ-convention-sanity-check" class="level3">
 <h3 class="anchored" data-anchor-id="stage-0b-φ-convention-sanity-check">6.2 Stage 0b — φ-convention sanity check</h3>
 <p><strong>The question.</strong> You ran the simulation at <code>phi_sim = 89°</code> and compared against your <code>phi_exp = 0°</code> FTIR files. That mapping is empirical — does 89° actually beat its neighbours (0°, 1°, 90°)?</p>
-<p><strong>Setup.</strong> Locked NA = 39 from Stage 0a. Four φ_sim values, all compared against <code>12-3_30_0_*.CSV</code>.</p>
+<p><strong>Setup.</strong> Locked NA = 39 from Stage 0a. Four <span class="math inline">\(\varphi_{\text{sim}}\)</span> values, all compared against <code>12-3_30_0_*.CSV</code>.</p>
 <p><strong>Run.</strong> <a href="simulation/sweep/bin/run_stage0b.py"><code>simulation/sweep/bin/run_stage0b.py</code></a> — 4 configs (with a resume run for an extra 89.999°), <strong>12.6 min wall</strong>.</p>
 <p><strong>Result.</strong></p>
 <table class="caption-top table">
@@ -2865,8 +2865,8 @@ window.Quarto = {
 </colgroup>
 <thead>
 <tr class="header">
-<th style="text-align: right;">φ_sim</th>
-<th style="text-align: right;">χ²_red(R_det)</th>
+<th style="text-align: right;"><span class="math inline">\(\varphi_{\text{sim}}\)</span></th>
+<th style="text-align: right;"><span class="math inline">\(\chi^{2}_{\text{red}}\)</span>(<span class="math inline">\(R_{\text{det}}\)</span>)</th>
 <th style="text-align: right;">Pearson r</th>
 <th>Notes</th>
 </tr>
@@ -2904,20 +2904,20 @@ window.Quarto = {
 </tr>
 </tbody>
 </table>
-<p><strong>Decision.</strong> <strong>φ_sim = 89° ↔︎ φ_exp = 0°</strong> confirmed.</p>
-<p><strong>One thing worth knowing.</strong> <code>rcwa</code> throws <strong>“Singular matrix”</strong> at <code>phi_sim = 0°</code> exactly — the in-plane k-vector becomes parallel to a lattice reference axis and certain block matrices in the S-matrix construction lose rank. This is a known numerical degeneracy, not a bug in your setup. The workaround for any future need to “run at φ_sim = 0°” is to use 0.001° instead. Your decision to run at 89° (one degree off the 90° branch, not the 0° branch) sidesteps the degeneracy cleanly — <strong>that was a deliberate, principled choice</strong>, not arbitrary.</p>
-<p><strong>Sanity check.</strong> The χ²_red at (φ_sim = 89°, NA = 39) here is <strong>224.89</strong>, which is bit-identical to the (NA = 39) row from Stage 0a. The runs are consistent across stages with matching parameters. ✅</p>
+<p><strong>Decision.</strong> <strong><span class="math inline">\(\varphi_{\text{sim}}\)</span> = 89° ↔︎ <span class="math inline">\(\varphi_{\text{exp}}\)</span> = 0°</strong> confirmed.</p>
+<p><strong>One thing worth knowing.</strong> <code>rcwa</code> throws <strong>“Singular matrix”</strong> at <code>phi_sim = 0°</code> exactly — the in-plane k-vector becomes parallel to a lattice reference axis and certain block matrices in the S-matrix construction lose rank. This is a known numerical degeneracy, not a bug in your setup. The workaround for any future need to “run at <span class="math inline">\(\varphi_{\text{sim}}\)</span> = 0°” is to use 0.001° instead. Your decision to run at 89° (one degree off the 90° branch, not the 0° branch) sidesteps the degeneracy cleanly — <strong>that was a deliberate, principled choice</strong>, not arbitrary.</p>
+<p><strong>Sanity check.</strong> The <span class="math inline">\(\chi^{2}_{\text{red}}\)</span> at (<span class="math inline">\(\varphi_{\text{sim}}\)</span> = 89°, NA = 39) here is <strong>224.89</strong>, which is bit-identical to the (NA = 39) row from Stage 0a. The runs are consistent across stages with matching parameters. ✅</p>
 <p>The detailed report: <a href="simulation/sweep/reports/stage0b_report.qmd"><code>simulation/sweep/reports/stage0b_report.qmd</code></a>.</p>
 </section>
 <section id="stage-1-universal-tier-1-sweep" class="level3">
 <h3 class="anchored" data-anchor-id="stage-1-universal-tier-1-sweep">6.3 Stage 1 — Universal Tier-1 sweep</h3>
 <p><strong>The question.</strong> Holding the per-sample geometry fixed at your AFM nominal (period = 12.9 µm, A = 1.5 µm → depth = 3.0 µm), find the universal triple <code>(t_oxide, β, oxide_dispersion)</code> that best fits the spectrum.</p>
-<p><strong>Setup.</strong> Locked NA = 39, φ_sim = 89° from Stage 0. Grid:</p>
+<p><strong>Setup.</strong> Locked NA = 39, <span class="math inline">\(\varphi_{\text{sim}}\)</span> = 89° from Stage 0. Grid:</p>
 <ul>
 <li><code>t_oxide ∈ {0, 0.05, 0.10, 0.20, 0.30, 0.50, 0.90}</code> µm — 7 values</li>
 <li><code>β ∈ {1°, 2°, 5°, 10°, 20°, 30°}</code> — 6 values</li>
 <li><code>oxide_dispersion ∈ {HS_caliente, RS_frio}</code> — 2 values</li>
-<li>Sample SS_12-3, (θ, φ_exp) = (30°, 0°), one condition only</li>
+<li>Sample SS_12-3, (<span class="math inline">\(\theta\)</span>, <span class="math inline">\(\varphi_{\text{exp}}\)</span>) = (30°, 0°), one condition only</li>
 </ul>
 <p>Total: <strong>84 configurations</strong>.</p>
 <p><strong>Run.</strong> <a href="simulation/sweep/bin/run_stage1.py"><code>simulation/sweep/bin/run_stage1.py</code></a> with <code>caffeinate -i ... --parallel 4 --resume</code>. <strong>3 h 35 min wall.</strong></p>
@@ -2933,10 +2933,10 @@ window.Quarto = {
 </colgroup>
 <thead>
 <tr class="header">
-<th style="text-align: right;">t_oxide (µm)</th>
-<th style="text-align: right;">β (°)</th>
+<th style="text-align: right;"><span class="math inline">\(t_{\text{oxide}}\)</span> (µm)</th>
+<th style="text-align: right;"><span class="math inline">\(\beta\)</span> (°)</th>
 <th>oxide</th>
-<th style="text-align: right;">χ²_red</th>
+<th style="text-align: right;"><span class="math inline">\(\chi^{2}_{\text{red}}\)</span></th>
 <th style="text-align: right;">RMSE</th>
 <th style="text-align: right;">Pearson r</th>
 </tr>
@@ -2989,34 +2989,42 @@ window.Quarto = {
 β                = 2°  (any of {1, 2, 5} — they are degenerate at this t_oxide)
 oxide_dispersion = HS_caliente
 χ²_red           = 138.83    Pearson r = 0.972</code></pre>
-<p><strong>An honest moment.</strong> <strong>This is the same configuration you arrived at empirically</strong> in your AJUSTE PDF (page 10): t_oxide = 0.9 µm, β = 2°, HS film. Two independent paths — your empirical fit hand-tuned against the FTIR, and my objective minimisation of χ²_red across an 84-point grid — converged on the same answer. That is the kind of cross-validation the sweep was designed to provide.</p>
-<p><strong>But: the safety rail tripped.</strong> Best χ²_red = 138.83 is <em>much</em> bigger than 1. Per <a href="simulation/design/DISTANCE.md"><code>DISTANCE.md §6</code></a>, this means <strong>Stage 2 must not proceed</strong> — proceeding would let <code>period</code> and <code>depth</code> absorb a structural error and give a falsely confident geometric fit.</p>
+<p><strong>An honest moment.</strong> <strong>This is the same configuration you arrived at empirically</strong> in your AJUSTE PDF (page 10): <span class="math inline">\(t_{\text{oxide}}\)</span> = 0.9 µm, <span class="math inline">\(\beta\)</span> = 2°, HS film. Two independent paths — your empirical fit hand-tuned against the FTIR, and my objective minimisation of <span class="math inline">\(\chi^{2}_{\text{red}}\)</span> across an 84-point grid — converged on the same answer. That is the kind of cross-validation the sweep was designed to provide.</p>
+<p><strong>But: the safety rail tripped.</strong> Best <span class="math inline">\(\chi^{2}_{\text{red}}\)</span> = 138.83 is <em>much</em> bigger than 1. Per <a href="simulation/design/DISTANCE.md"><code>DISTANCE.md §6</code></a>, this means <strong>Stage 2 must not proceed</strong> — proceeding would let <code>period</code> and <code>depth</code> absorb a structural error and give a falsely confident geometric fit.</p>
 <p><strong>Where the residual is, in physical terms.</strong></p>
 <ul>
 <li>Pearson r = 0.972 → <em>shape</em> of <code>R_det(λ)</code> is already almost right.</li>
-<li>The remaining χ² is dominated by <strong>amplitude offset</strong> (~10–15 pp uniform drop the simulation needs to make).</li>
-<li>The best t_oxide is at the <strong>edge of the explored range</strong> (0.9 µm). The trend is still falling, so a <em>thicker</em> oxide would fit better — except this is your nominal placeholder and you have not directly measured it.</li>
-<li>The non-monotonic dip from <code>t_oxide = 0.3 → 0.5 → 0.9</code> (χ²: 225 → 202 → 139) suggests <strong>interference structure</strong> — a Fabry-Pérot-like cancellation in the oxide. That is physically meaningful, not a numerical artefact.</li>
+<li>The remaining <span class="math inline">\(\chi^{2}\)</span> is dominated by <strong>amplitude offset</strong> (~10–15 pp uniform drop the simulation needs to make).</li>
+<li>The best <span class="math inline">\(t_{\text{oxide}}\)</span> is at the <strong>edge of the explored range</strong> (0.9 µm). The trend is still falling, so a <em>thicker</em> oxide would fit better — except this is your nominal placeholder and you have not directly measured it.</li>
+<li>The non-monotonic dip from <code>t_oxide = 0.3 → 0.5 → 0.9</code> (<span class="math inline">\(\chi^{2}\)</span>: 225 → 202 → 139) suggests <strong>interference structure</strong> — a Fabry-Pérot-like cancellation in the oxide. That is physically meaningful, not a numerical artefact.</li>
 </ul>
-<p><strong>Diagnosis from this stage.</strong> The dominant error is <strong>amplitude</strong>, not feature alignment. The most likely culprit (per <code>ANALYSIS.md §4 / §6.3</code>) is the <strong>Cr₂O₃ extinction-coefficient model</strong> — it extrapolates the Al-Kuhaili sub-bandgap-tail fit 10× past its 0.3–2.5 µm range and contains no phonon physics. <strong>Replacing the empirical k(λ) with a literature ε(λ) including the Reststrahlen band is the single largest upgrade available</strong>, and that is exactly what should be tried next when you (or anyone) pick this up post-TFM.</p>
+<p><strong>Diagnosis from this stage.</strong> The dominant error is <strong>amplitude</strong>, not feature alignment. The most likely culprit (per <code>ANALYSIS.md §4 / §6.3</code>) is the <strong>Cr<span class="math inline">\(_{2}\)</span>O<span class="math inline">\(_{3}\)</span> extinction-coefficient model</strong> — it extrapolates the Al-Kuhaili sub-bandgap-tail fit 10× past its 0.3–2.5 µm range and contains no phonon physics. <strong>Replacing the empirical <span class="math inline">\(k(\lambda)\)</span> with a literature <span class="math inline">\(\varepsilon(\lambda)\)</span> including the Reststrahlen band is the single largest upgrade available</strong>, and that is exactly what should be tried next when you (or anyone) pick this up post-TFM.</p>
 <p>The detailed report: <a href="simulation/sweep/reports/stage1_report.qmd"><code>simulation/sweep/reports/stage1_report.qmd</code></a>.</p>
 </section>
 <section id="the-double-sinusoid-follow-up" class="level3">
 <h3 class="anchored" data-anchor-id="the-double-sinusoid-follow-up">6.4 The double-sinusoid follow-up</h3>
 <p><strong>The question.</strong> Section 5 of your <em>Tratamiento</em> PDF shows the AFM mean profile has <strong>broader peaks and sharper valleys</strong> than a pure sinusoid — a non-sinusoidal asymmetry. Can a second-harmonic term <code>A₂ sin(2 k x + π/2)</code> reproduce that, and does it close any of the residual?</p>
-<p><strong>Setup.</strong> Locked Stage-1 best (t_oxide = 0.9, β = 2°, HS_caliente, NA = 39, φ_sim = 89°, period = 12.9, A₁ = 1.5, θ = 30°). Sweep <code>A₂ ∈ {0.10, 0.20, 0.30, 0.35}</code> µm at fixed <code>φ₂ = π/2</code>.</p>
+<p><strong>Setup.</strong> Locked Stage-1 best (<span class="math inline">\(t_{\text{oxide}}\)</span> = 0.9, <span class="math inline">\(\beta\)</span> = 2°, HS_caliente, NA = 39, <span class="math inline">\(\varphi_{\text{sim}}\)</span> = 89°, period = 12.9, <span class="math inline">\(A_1\)</span> = 1.5, <span class="math inline">\(\theta\)</span> = 30°). Sweep <code>A₂ ∈ {0.10, 0.20, 0.30, 0.35}</code> µm at fixed <code>φ₂ = π/2</code>.</p>
 <p><strong>Constraint.</strong> The double-sin profile must keep its peak as a peak (not become a saddle). For <code>A₂ &lt; A₁/4 = 0.375 µm</code> the local minimum stays a local minimum. The chosen range respects that bound.</p>
 <p><strong>Run.</strong> <a href="simulation/sweep/bin/run_double_sin_test.py"><code>simulation/sweep/bin/run_double_sin_test.py</code></a> — 4 configs at 3 workers, <strong>~14 min wall</strong> total across two invocations.</p>
 <p><strong>Result.</strong></p>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+</colgroup>
 <thead>
 <tr class="header">
-<th style="text-align: right;">A₂ (µm)</th>
-<th style="text-align: right;">φ₂</th>
-<th style="text-align: right;">χ²_red</th>
+<th style="text-align: right;"><span class="math inline">\(A_2\)</span> (µm)</th>
+<th style="text-align: right;"><span class="math inline">\(\varphi_2\)</span></th>
+<th style="text-align: right;"><span class="math inline">\(\chi^{2}_{\text{red}}\)</span></th>
 <th style="text-align: right;">RMSE</th>
 <th style="text-align: right;">Pearson r</th>
-<th style="text-align: right;">Δχ² vs A₂ = 0</th>
+<th style="text-align: right;">Δ<span class="math inline">\(\chi^{2}\)</span> vs <span class="math inline">\(A_2\)</span> = 0</th>
 </tr>
 </thead>
 <tbody>
@@ -3030,7 +3038,7 @@ oxide_dispersion = HS_caliente
 </tr>
 <tr class="even">
 <td style="text-align: right;">0.10</td>
-<td style="text-align: right;">π/2</td>
+<td style="text-align: right;"><span class="math inline">\(\pi\)</span>/2</td>
 <td style="text-align: right;">126.75</td>
 <td style="text-align: right;">0.113</td>
 <td style="text-align: right;">0.978</td>
@@ -3038,7 +3046,7 @@ oxide_dispersion = HS_caliente
 </tr>
 <tr class="odd">
 <td style="text-align: right;">0.20</td>
-<td style="text-align: right;">π/2</td>
+<td style="text-align: right;"><span class="math inline">\(\pi\)</span>/2</td>
 <td style="text-align: right;">113.77</td>
 <td style="text-align: right;">0.107</td>
 <td style="text-align: right;">0.983</td>
@@ -3046,7 +3054,7 @@ oxide_dispersion = HS_caliente
 </tr>
 <tr class="even">
 <td style="text-align: right;">0.30</td>
-<td style="text-align: right;">π/2</td>
+<td style="text-align: right;"><span class="math inline">\(\pi\)</span>/2</td>
 <td style="text-align: right;">104.18</td>
 <td style="text-align: right;">0.102</td>
 <td style="text-align: right;">0.983</td>
@@ -3054,7 +3062,7 @@ oxide_dispersion = HS_caliente
 </tr>
 <tr class="odd">
 <td style="text-align: right;"><strong>0.35</strong></td>
-<td style="text-align: right;">π/2</td>
+<td style="text-align: right;"><span class="math inline">\(\pi\)</span>/2</td>
 <td style="text-align: right;"><strong>101.10</strong></td>
 <td style="text-align: right;"><strong>0.101</strong></td>
 <td style="text-align: right;">0.980</td>
@@ -3062,7 +3070,7 @@ oxide_dispersion = HS_caliente
 </tr>
 </tbody>
 </table>
-<p><strong>Decision.</strong> <strong>A₂ = 0.30 µm, φ₂ = π/2.</strong> Going from A₂ = 0.30 to 0.35 buys only a few extra χ² and starts hurting Pearson r — we are at the sweet spot. <strong>The 2nd harmonic is real and worth carrying</strong>, with a 25 % χ² reduction over the pure sinusoid.</p>
+<p><strong>Decision.</strong> <strong><span class="math inline">\(A_2\)</span> = 0.30 µm, <span class="math inline">\(\varphi_2\)</span> = <span class="math inline">\(\pi\)</span>/2.</strong> Going from <span class="math inline">\(A_2\)</span> = 0.30 to 0.35 buys only a few extra <span class="math inline">\(\chi^{2}\)</span> and starts hurting Pearson r — we are at the sweet spot. <strong>The 2nd harmonic is real and worth carrying</strong>, with a 25 % <span class="math inline">\(\chi^{2}\)</span> reduction over the pure sinusoid.</p>
 <p><strong>One small bug worth flagging.</strong> <code>run_double_sin_test.py</code> had a <code>--resume</code> bug: when re-invoked, the final CSV write was unconditional and overwrote <code>results.csv</code> with just the new rows, losing the older ones. The <code>traces/</code> directory was untouched so I rebuilt the table by re-scoring the saved trace folders. The fix is to merge against the existing CSV before writing, the way <code>run_stage0a.py</code> and <code>run_stage0b.py</code> do. <a href="RUN_LOG.md">Flagged in <code>RUN_LOG.md</code> lessons.</a></p>
 <p>The detailed report: <a href="simulation/sweep/reports/double_sin_test_report.qmd"><code>simulation/sweep/reports/double_sin_test_report.qmd</code></a>.</p>
 </section>
@@ -3075,7 +3083,7 @@ t_oxide      = 0.90 µm             (Stage 1)
 oxide_disp   = HS_caliente         (Stage 1)
 A₂           = 0.30 µm             (double-sin test)
 φ₂           = π/2 rad             (double-sin test)</code></pre>
-<p>Every one of these matches your own empirical work where you state values explicitly, and the ones you do not state (A₂, φ₂) are physically motivated by the AFM asymmetry you reported.</p>
+<p>Every one of these matches your own empirical work where you state values explicitly, and the ones you do not state (<span class="math inline">\(A_2\)</span>, <span class="math inline">\(\varphi_2\)</span>) are physically motivated by the AFM asymmetry you reported.</p>
 <hr>
 </section>
 </section>
@@ -3087,7 +3095,7 @@ A₂           = 0.30 µm             (double-sin test)
 </section>
 <section id="setup" class="level3">
 <h3 class="anchored" data-anchor-id="setup">Setup</h3>
-<p>Locked params from §6.4. Sweep: - <code>θ ∈ {30°, 45°, 60°}</code> × <code>φ_exp ∈ {0°, 22.5°, 45°, 67.5°, 90°}</code> = 15 cells - φ_sim mapping: <code>φ_sim = 90° − φ_exp</code>, with the 1° offset at the singularities (φ_exp 0° → φ_sim 89°, φ_exp 90° → φ_sim 1°)</p>
+<p>Locked params from §6.4. Sweep: - <code>θ ∈ {30°, 45°, 60°}</code> × <code>φ_exp ∈ {0°, 22.5°, 45°, 67.5°, 90°}</code> = 15 cells - <span class="math inline">\(\varphi_{\text{sim}}\)</span> mapping: <code>φ_sim = 90° − φ_exp</code>, with the 1° offset at the singularities (<span class="math inline">\(\varphi_{\text{exp}}\)</span> 0° → <span class="math inline">\(\varphi_{\text{sim}}\)</span> 89°, <span class="math inline">\(\varphi_{\text{exp}}\)</span> 90° → <span class="math inline">\(\varphi_{\text{sim}}\)</span> 1°)</p>
 </section>
 <section id="run" class="level3">
 <h3 class="anchored" data-anchor-id="run">Run</h3>
@@ -3095,11 +3103,20 @@ A₂           = 0.30 µm             (double-sin test)
 </section>
 <section id="result-the-matrix" class="level3">
 <h3 class="anchored" data-anchor-id="result-the-matrix">Result — the matrix</h3>
-<p><strong>χ²_red across (θ, φ_exp):</strong></p>
+<p><strong><span class="math inline">\(\chi^{2}_{\text{red}}\)</span> across (<span class="math inline">\(\theta\)</span>, <span class="math inline">\(\varphi_{\text{exp}}\)</span>):</strong></p>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 11%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+</colgroup>
 <thead>
 <tr class="header">
-<th>θ  φ_exp</th>
+<th><span class="math inline">\(\theta\)</span>  <span class="math inline">\(\varphi_{\text{exp}}\)</span></th>
 <th style="text-align: right;">0°</th>
 <th style="text-align: right;">22.5°</th>
 <th style="text-align: right;">45°</th>
@@ -3139,11 +3156,11 @@ A₂           = 0.30 µm             (double-sin test)
 </tbody>
 </table>
 <p><strong>Aggregate:</strong> sum 5132 · mean 342 · median 142 · <strong>max/min ratio = 15.3 ×</strong></p>
-<p><strong>Pearson r across (θ, φ_exp):</strong></p>
+<p><strong>Pearson r across (<span class="math inline">\(\theta\)</span>, <span class="math inline">\(\varphi_{\text{exp}}\)</span>):</strong></p>
 <table class="caption-top table">
 <thead>
 <tr class="header">
-<th>θ  φ_exp</th>
+<th><span class="math inline">\(\theta\)</span>  <span class="math inline">\(\varphi_{\text{exp}}\)</span></th>
 <th style="text-align: right;">0°</th>
 <th style="text-align: right;">22.5°</th>
 <th style="text-align: right;">45°</th>
@@ -3182,9 +3199,9 @@ A₂           = 0.30 µm             (double-sin test)
 <section id="reading-the-matrix" class="level3">
 <h3 class="anchored" data-anchor-id="reading-the-matrix">Reading the matrix</h3>
 <ul>
-<li><strong>The whole θ = 30° row is healthy.</strong> χ²_red sits in 75–104 (1.4× ratio), Pearson r ≥ 0.95 everywhere. <strong>The φ_sim = 90° − φ_exp mapping is vindicated by this row’s uniformity</strong> — the φ axis is consistent across all five azimuths, which is exactly what you would expect if the mapping is right.</li>
-<li><strong>At θ = 45° the residual roughly doubles</strong> (mean χ² 88 → 174). Shape is still excellent (r ≥ 0.93). <em>Usable with caveats.</em></li>
-<li><strong>At θ = 60° the simulation breaks down.</strong> χ² is 423–1158, ten times the θ = 30° baseline. Pearson r drops below 0.90 at most azimuths — the <strong>shape itself misaligns</strong>, not just the amplitude.</li>
+<li><strong>The whole <span class="math inline">\(\theta\)</span> = 30° row is healthy.</strong> <span class="math inline">\(\chi^{2}_{\text{red}}\)</span> sits in 75–104 (1.4× ratio), Pearson r <span class="math inline">\(\geq\)</span> 0.95 everywhere. <strong>The <span class="math inline">\(\varphi_{\text{sim}}\)</span> = 90° − <span class="math inline">\(\varphi_{\text{exp}}\)</span> mapping is vindicated by this row’s uniformity</strong> — the <span class="math inline">\(\varphi\)</span> axis is consistent across all five azimuths, which is exactly what you would expect if the mapping is right.</li>
+<li><strong>At <span class="math inline">\(\theta\)</span> = 45° the residual roughly doubles</strong> (mean <span class="math inline">\(\chi^{2}\)</span> 88 → 174). Shape is still excellent (r <span class="math inline">\(\geq\)</span> 0.93). <em>Usable with caveats.</em></li>
+<li><strong>At <span class="math inline">\(\theta\)</span> = 60° the simulation breaks down.</strong> <span class="math inline">\(\chi^{2}\)</span> is 423–1158, ten times the <span class="math inline">\(\theta\)</span> = 30° baseline. Pearson r drops below 0.90 at most azimuths — the <strong>shape itself misaligns</strong>, not just the amplitude.</li>
 </ul>
 </section>
 <section id="what-happens-physically-at-θ-60-φ-0" class="level3">
@@ -3193,13 +3210,13 @@ A₂           = 0.30 µm             (double-sin test)
 <thead>
 <tr class="header">
 <th></th>
-<th style="text-align: right;">At θ = 30°</th>
-<th style="text-align: right;">At θ = 60°</th>
+<th style="text-align: right;">At <span class="math inline">\(\theta\)</span> = 30°</th>
+<th style="text-align: right;">At <span class="math inline">\(\theta\)</span> = 60°</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>sim ⟨R_det⟩ (3–25 µm mean)</td>
+<td>sim ⟨<span class="math inline">\(R_{\text{det}}\)</span>⟩ (3–25 µm mean)</td>
 <td style="text-align: right;">0.60</td>
 <td style="text-align: right;">0.69</td>
 </tr>
@@ -3215,8 +3232,8 @@ A₂           = 0.30 µm             (double-sin test)
 </tr>
 </tbody>
 </table>
-<p>The simulation predicts the sample reflects <strong>70 %</strong> of incident light at θ = 60°. The experiment sees <strong>37 %</strong>. The “missing” 33 percentage points must be going somewhere — light is being lost from the specular direction in a way the simulation cannot represent.</p>
-<p>For a smooth metal at grazing, Fresnel says R should <em>increase</em> with θ. The simulation gets that right. The experimental data does the <em>opposite</em> — R <em>drops</em> by ~30 pp going from θ = 30° to θ = 60°. <strong>That pattern is unphysical for an idealised periodic surface.</strong> It is a real measurement of <em>something</em> the model has no channel for.</p>
+<p>The simulation predicts the sample reflects <strong>70 %</strong> of incident light at <span class="math inline">\(\theta\)</span> = 60°. The experiment sees <strong>37 %</strong>. The “missing” 33 percentage points must be going somewhere — light is being lost from the specular direction in a way the simulation cannot represent.</p>
+<p>For a smooth metal at grazing, Fresnel says R should <em>increase</em> with <span class="math inline">\(\theta\)</span>. The simulation gets that right. The experimental data does the <em>opposite</em> — R <em>drops</em> by ~30 pp going from <span class="math inline">\(\theta\)</span> = 30° to <span class="math inline">\(\theta\)</span> = 60°. <strong>That pattern is unphysical for an idealised periodic surface.</strong> It is a real measurement of <em>something</em> the model has no channel for.</p>
 <p>The detailed report: <a href="simulation/sweep/reports/validate_thetaphi_report.qmd"><code>simulation/sweep/reports/validate_thetaphi_report.qmd</code></a>.</p>
 <hr>
 </section>
@@ -3226,8 +3243,8 @@ A₂           = 0.30 µm             (double-sin test)
 <p>Before concluding “this is a physics-model gap, not a bug”, I tested the two obvious bug hypotheses.</p>
 <section id="diagnostic-a-semi-infinite-substrate" class="level3">
 <h3 class="anchored" data-anchor-id="diagnostic-a-semi-infinite-substrate">Diagnostic (A) — semi-infinite substrate</h3>
-<p><strong>Hypothesis.</strong> The 200 µm SS slab terminated by vacuum might allow back-reflections that contaminate <code>R_det</code> at large θ (longer internal path). Implemented <code>SimConfig.semi_infinite_substrate: bool = False</code> flag — when True, drops the explicit 200 µm metal_layer and sets <code>transmission_layer = Layer(er=ε_SS(λ), ur=1.000022)</code>.</p>
-<p><strong>Run.</strong> <a href="simulation/sweep/bin/test_semi_infinite.py"><code>simulation/sweep/bin/test_semi_infinite.py</code></a> — 2 cells (θ = 30° and θ = 60° at φ_exp = 0°), <strong>6.1 min wall</strong>.</p>
+<p><strong>Hypothesis.</strong> The 200 µm SS slab terminated by vacuum might allow back-reflections that contaminate <code>R_det</code> at large <span class="math inline">\(\theta\)</span> (longer internal path). Implemented <code>SimConfig.semi_infinite_substrate: bool = False</code> flag — when True, drops the explicit 200 µm metal_layer and sets <code>transmission_layer = Layer(er=ε_SS(λ), ur=1.000022)</code>.</p>
+<p><strong>Run.</strong> <a href="simulation/sweep/bin/test_semi_infinite.py"><code>simulation/sweep/bin/test_semi_infinite.py</code></a> — 2 cells (<span class="math inline">\(\theta\)</span> = 30° and <span class="math inline">\(\theta\)</span> = 60° at <span class="math inline">\(\varphi_{\text{exp}}\)</span> = 0°), <strong>6.1 min wall</strong>.</p>
 <p><strong>Result.</strong></p>
 <table class="caption-top table">
 <thead>
@@ -3235,37 +3252,37 @@ A₂           = 0.30 µm             (double-sin test)
 <th>Cell</th>
 <th style="text-align: right;">Baseline (finite slab)</th>
 <th style="text-align: right;">Semi-infinite</th>
-<th style="text-align: right;">Δχ²</th>
+<th style="text-align: right;">Δ<span class="math inline">\(\chi^{2}\)</span></th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>(θ = 30°, φ = 0°)</td>
+<td>(<span class="math inline">\(\theta\)</span> = 30°, <span class="math inline">\(\varphi\)</span> = 0°)</td>
 <td style="text-align: right;">104.18</td>
 <td style="text-align: right;">104.18</td>
 <td style="text-align: right;"><strong>0.00</strong></td>
 </tr>
 <tr class="even">
-<td>(θ = 60°, φ = 0°)</td>
+<td>(<span class="math inline">\(\theta\)</span> = 60°, <span class="math inline">\(\varphi\)</span> = 0°)</td>
 <td style="text-align: right;">1157.65</td>
 <td style="text-align: right;">1157.65</td>
 <td style="text-align: right;"><strong>0.00</strong></td>
 </tr>
 </tbody>
 </table>
-<p><strong>Bit-identical at both cells, both metrics.</strong> Reason: skin depth in our band is 50–200 nm; 200 µm of SS is already 3–4 orders of magnitude thicker, so light decays by ≥ e⁻²⁵⁰⁰ before reaching the back surface. The substrate is <em>already</em> optically semi-infinite. <a href="ANALYSIS.md"><code>ANALYSIS.md §6.7</code></a> was geometrically valid but physically irrelevant.</p>
+<p><strong>Bit-identical at both cells, both metrics.</strong> Reason: skin depth in our band is 50–200 nm; 200 µm of SS is already 3–4 orders of magnitude thicker, so light decays by <span class="math inline">\(\geq\)</span> e⁻²⁵⁰⁰ before reaching the back surface. The substrate is <em>already</em> optically semi-infinite. <a href="ANALYSIS.md"><code>ANALYSIS.md §6.7</code></a> was geometrically valid but physically irrelevant.</p>
 <p><strong>(A) REJECTED.</strong></p>
 </section>
 <section id="diagnostic-b-na-convergence-at-θ-60" class="level3">
 <h3 class="anchored" data-anchor-id="diagnostic-b-na-convergence-at-θ-60">Diagnostic (B) — NA convergence at θ = 60°</h3>
-<p><strong>Hypothesis.</strong> NA = 39 was chosen at θ = 30° (Stage 0a). Larger θ generally demands more harmonics because more diffraction orders propagate closer to the sample plane. Maybe NA = 39 is undersized at grazing.</p>
-<p><strong>Run.</strong> <a href="simulation/sweep/bin/test_na_at_theta60.py"><code>simulation/sweep/bin/test_na_at_theta60.py</code></a> — NA ∈ {39, 51, 75, 91} at the worst cell (θ = 60°, φ = 0°). <strong>47.2 min wall</strong> (NA = 91 is the bottleneck).</p>
+<p><strong>Hypothesis.</strong> NA = 39 was chosen at <span class="math inline">\(\theta\)</span> = 30° (Stage 0a). Larger <span class="math inline">\(\theta\)</span> generally demands more harmonics because more diffraction orders propagate closer to the sample plane. Maybe NA = 39 is undersized at grazing.</p>
+<p><strong>Run.</strong> <a href="simulation/sweep/bin/test_na_at_theta60.py"><code>simulation/sweep/bin/test_na_at_theta60.py</code></a> — NA <span class="math inline">\(\in\)</span> {39, 51, 75, 91} at the worst cell (<span class="math inline">\(\theta\)</span> = 60°, <span class="math inline">\(\varphi\)</span> = 0°). <strong>47.2 min wall</strong> (NA = 91 is the bottleneck).</p>
 <p><strong>Result.</strong></p>
 <table class="caption-top table">
 <thead>
 <tr class="header">
 <th style="text-align: right;">NA</th>
-<th style="text-align: right;">χ²_red</th>
+<th style="text-align: right;"><span class="math inline">\(\chi^{2}_{\text{red}}\)</span></th>
 <th style="text-align: right;">RMSE</th>
 <th style="text-align: right;">Pearson r</th>
 <th style="text-align: right;">Δ vs NA = 39</th>
@@ -3302,12 +3319,12 @@ A₂           = 0.30 µm             (double-sin test)
 </tr>
 </tbody>
 </table>
-<p><strong>χ² goes the wrong way with NA.</strong> Adding harmonics makes the fit <em>slightly worse</em>, not better. NA = 39 is fully converged at θ = 60°. The disagreement is <strong>not numerical</strong>.</p>
+<p><strong><span class="math inline">\(\chi^{2}\)</span> goes the wrong way with NA.</strong> Adding harmonics makes the fit <em>slightly worse</em>, not better. NA = 39 is fully converged at <span class="math inline">\(\theta\)</span> = 60°. The disagreement is <strong>not numerical</strong>.</p>
 <p><strong>(B) REJECTED.</strong></p>
 </section>
 <section id="combined-verdict" class="level3">
 <h3 class="anchored" data-anchor-id="combined-verdict">Combined verdict</h3>
-<p>Both “is it a bug?” suspects eliminated. The θ-dependent failure is a <strong>physics-modelling gap</strong>, not a numerics or geometry-wrap-up bug.</p>
+<p>Both “is it a bug?” suspects eliminated. The <span class="math inline">\(\theta\)</span>-dependent failure is a <strong>physics-modelling gap</strong>, not a numerics or geometry-wrap-up bug.</p>
 <hr>
 </section>
 </section>
@@ -3316,26 +3333,26 @@ A₂           = 0.30 µm             (double-sin test)
 <p>The definitive write-up of this conclusion is in <a href="simulation/design/MODEL_DOMAIN_OF_VALIDITY.md"><code>simulation/design/MODEL_DOMAIN_OF_VALIDITY.md</code></a>. Three classes of physical loss the current model has no channel to represent, in rough order of likely contribution:</p>
 <section id="diffuse-scattering-from-non-periodic-surface-roughness" class="level3">
 <h3 class="anchored" data-anchor-id="diffuse-scattering-from-non-periodic-surface-roughness">9.1 Diffuse scattering from non-periodic surface roughness</h3>
-<p>Your AFM data (Section 4 of <em>Tratamiento</em>) shows the surface profile has a ±σ envelope around the mean periodic structure — height fluctuations beyond the sinusoid itself. RCWA on a <em>perfect</em> periodic profile has only two channels for incident energy: propagating diffraction orders (a discrete set determined by the grating equation) or absorption inside the discretised structure. <strong>There is no mechanism for energy to leave in non-grating directions as diffuse scatter.</strong> Real surface roughness scatters light into a continuum of directions, removing it from the specular order. At grazing incidence this fraction grows because the effective optical interaction with surface fluctuations rises with the path-length-to-feature-size ratio. The simulation over-predicts specular at all θ, but the gap is invisible at θ = 30° and dominant at θ = 60°.</p>
+<p>Your AFM data (Section 4 of <em>Tratamiento</em>) shows the surface profile has a <span class="math inline">\(\pm\sigma\)</span> envelope around the mean periodic structure — height fluctuations beyond the sinusoid itself. RCWA on a <em>perfect</em> periodic profile has only two channels for incident energy: propagating diffraction orders (a discrete set determined by the grating equation) or absorption inside the discretised structure. <strong>There is no mechanism for energy to leave in non-grating directions as diffuse scatter.</strong> Real surface roughness scatters light into a continuum of directions, removing it from the specular order. At grazing incidence this fraction grows because the effective optical interaction with surface fluctuations rises with the path-length-to-feature-size ratio. The simulation over-predicts specular at all <span class="math inline">\(\theta\)</span>, but the gap is invisible at <span class="math inline">\(\theta\)</span> = 30° and dominant at <span class="math inline">\(\theta\)</span> = 60°.</p>
 </section>
 <section id="geometry-amplified-cr₂o₃-absorption" class="level3">
 <h3 class="anchored" data-anchor-id="geometry-amplified-cr₂o₃-absorption">9.2 Geometry-amplified Cr₂O₃ absorption</h3>
-<p>At θ = 60°, the optical path through the 0.9 µm oxide is <code>t / cos(60°) = 1.8 µm</code> — <strong>2× the path at θ = 30°</strong>. The Cr₂O₃ k(λ) we use is the sub-bandgap tail from Al-Kuhaili &amp; Durrani 2007, <strong>extrapolated 10× past its 0.3–2.5 µm fit range</strong>. It contains <strong>no phonon physics</strong> (no Reststrahlen band — see <a href="ANALYSIS.md"><code>ANALYSIS.md §4</code></a>). If our k(λ) underestimates the true absorption (almost certainly does, in the IR), that error is amplified by the path-length ratio at grazing.</p>
+<p>At <span class="math inline">\(\theta\)</span> = 60°, the optical path through the 0.9 µm oxide is <code>t / cos(60°) = 1.8 µm</code> — <strong>2× the path at <span class="math inline">\(\theta\)</span> = 30°</strong>. The Cr<span class="math inline">\(_{2}\)</span>O<span class="math inline">\(_{3}\)</span> <span class="math inline">\(k(\lambda)\)</span> we use is the sub-bandgap tail from Al-Kuhaili &amp; Durrani 2007, <strong>extrapolated 10× past its 0.3–2.5 µm fit range</strong>. It contains <strong>no phonon physics</strong> (no Reststrahlen band — see <a href="ANALYSIS.md"><code>ANALYSIS.md §4</code></a>). If our <span class="math inline">\(k(\lambda)\)</span> underestimates the true absorption (almost certainly does, in the IR), that error is amplified by the path-length ratio at grazing.</p>
 </section>
 <section id="polarisation-handling-at-grazing" class="level3">
 <h3 class="anchored" data-anchor-id="polarisation-handling-at-grazing">9.3 Polarisation handling at grazing</h3>
-<p>We average <code>R_LX</code> and <code>R_LY</code> (Cartesian-x and Cartesian-y) to model an unpolarised source. At normal-ish incidence (θ = 30°) the difference between TE and TM reflectance is modest; the LX/LY average is a reasonable proxy for unpolarised. At grazing, TE and TM diverge sharply (Fresnel), and any imperfect mapping between (LX, LY) and (TE, TM) shows up as a θ-dependent error. Probably a smaller effect than (9.1) and (9.2) but contributes.</p>
+<p>We average <code>R_LX</code> and <code>R_LY</code> (Cartesian-x and Cartesian-y) to model an unpolarised source. At normal-ish incidence (<span class="math inline">\(\theta\)</span> = 30°) the difference between TE and TM reflectance is modest; the LX/LY average is a reasonable proxy for unpolarised. At grazing, TE and TM diverge sharply (Fresnel), and any imperfect mapping between (LX, LY) and (TE, TM) shows up as a <span class="math inline">\(\theta\)</span>-dependent error. Probably a smaller effect than (9.1) and (9.2) but contributes.</p>
 </section>
 <section id="what-none-of-these-are" class="level3">
 <h3 class="anchored" data-anchor-id="what-none-of-these-are">What none of these are</h3>
-<p>None is fixable by <em>parameter tuning</em>. They are gaps in <em>what the model represents</em>. Adding more parameters (period, depth, β, oxide thickness) cannot create the missing physical channels. This is why χ² actually got <em>slightly worse</em> in Diagnostic (B): refining the harmonic basis just makes the (wrong) idealised model more accurate, which does not help.</p>
+<p>None is fixable by <em>parameter tuning</em>. They are gaps in <em>what the model represents</em>. Adding more parameters (period, depth, <span class="math inline">\(\beta\)</span>, oxide thickness) cannot create the missing physical channels. This is why <span class="math inline">\(\chi^{2}\)</span> actually got <em>slightly worse</em> in Diagnostic (B): refining the harmonic basis just makes the (wrong) idealised model more accurate, which does not help.</p>
 </section>
 <section id="what-this-domain-analysis-buys-us" class="level3">
 <h3 class="anchored" data-anchor-id="what-this-domain-analysis-buys-us">What this domain analysis buys us</h3>
 <ul>
-<li><strong>A clean statement of where the model is trustworthy.</strong> Sample SS_12-3, λ ∈ [3, 25] µm, θ ≤ 30° — Pearson r ≥ 0.95 across the full azimuth row, ~6 pp residual amplitude offset attributable to the oxide phonon model.</li>
-<li><strong>A clean statement of where it is not.</strong> θ ≥ 45° marginal; θ ≥ 60° unusable. Document this as a <em>finding about the model</em>, not as a failure of the campaign.</li>
-<li><strong>A prioritised list of future research directions</strong> (<a href="simulation/design/MODEL_DOMAIN_OF_VALIDITY.md"><code>MODEL_DOMAIN_OF_VALIDITY.md §8.3</code></a>): Lorentz-oscillator Cr₂O₃ phonon model (~2–5 days), Rayleigh-Rice scattering correction (~1–2 days), AFM-mean-profile substitution for the idealised sinusoid (~2–3 days). Each is a research project; none is required for the TFM result.</li>
+<li><strong>A clean statement of where the model is trustworthy.</strong> Sample SS_12-3, <span class="math inline">\(\lambda\)</span> <span class="math inline">\(\in\)</span> [3, 25] µm, <span class="math inline">\(\theta\)</span> <span class="math inline">\(\leq\)</span> 30° — Pearson r <span class="math inline">\(\geq\)</span> 0.95 across the full azimuth row, ~6 pp residual amplitude offset attributable to the oxide phonon model.</li>
+<li><strong>A clean statement of where it is not.</strong> <span class="math inline">\(\theta\)</span> <span class="math inline">\(\geq\)</span> 45° marginal; <span class="math inline">\(\theta\)</span> <span class="math inline">\(\geq\)</span> 60° unusable. Document this as a <em>finding about the model</em>, not as a failure of the campaign.</li>
+<li><strong>A prioritised list of future research directions</strong> (<a href="simulation/design/MODEL_DOMAIN_OF_VALIDITY.md"><code>MODEL_DOMAIN_OF_VALIDITY.md §8.3</code></a>): Lorentz-oscillator Cr<span class="math inline">\(_{2}\)</span>O<span class="math inline">\(_{3}\)</span> phonon model (~2–5 days), Rayleigh-Rice scattering correction (~1–2 days), AFM-mean-profile substitution for the idealised sinusoid (~2–3 days). Each is a research project; none is required for the TFM result.</li>
 </ul>
 <hr>
 </section>
@@ -3344,11 +3361,11 @@ A₂           = 0.30 µm             (double-sin test)
 <h2 class="anchored" data-anchor-id="where-this-leaves-us-bottom-line">10. Where this leaves us (bottom line)</h2>
 <section id="the-result-in-one-paragraph" class="level3">
 <h3 class="anchored" data-anchor-id="the-result-in-one-paragraph">The result, in one paragraph</h3>
-<p><strong>At θ = 30° on sample SS_12-3, λ ∈ [3, 25] µm</strong>, the simulation reproduces your experimental FTIR with <strong>Pearson r between 0.95 and 0.98 across the full azimuth row</strong>, with a residual amplitude offset of about 6 percentage points that is attributable to the Cr₂O₃ phonon model (a known extrapolation outside its fit range). The configuration that achieves this — <code>(NA = 39, t_oxide = 0.9 µm, β = 2°, HS_caliente, A₂ = 0.30 µm, φ₂ = π/2)</code> — <strong>matches your independent empirical fit exactly</strong> in every parameter you committed to in the AJUSTE PDF. Two independent methods, one answer.</p>
+<p><strong>At <span class="math inline">\(\theta\)</span> = 30° on sample SS_12-3, <span class="math inline">\(\lambda\)</span> <span class="math inline">\(\in\)</span> [3, 25] µm</strong>, the simulation reproduces your experimental FTIR with <strong>Pearson r between 0.95 and 0.98 across the full azimuth row</strong>, with a residual amplitude offset of about 6 percentage points that is attributable to the Cr<span class="math inline">\(_{2}\)</span>O<span class="math inline">\(_{3}\)</span> phonon model (a known extrapolation outside its fit range). The configuration that achieves this — <code>(NA = 39, t_oxide = 0.9 µm, β = 2°, HS_caliente, A₂ = 0.30 µm, φ₂ = π/2)</code> — <strong>matches your independent empirical fit exactly</strong> in every parameter you committed to in the AJUSTE PDF. Two independent methods, one answer.</p>
 </section>
 <section id="stage-2-is-the-natural-next-step" class="level3">
 <h3 class="anchored" data-anchor-id="stage-2-is-the-natural-next-step">Stage 2 is the natural next step</h3>
-<p>Per-sample geometry refinement under the locked Tier-1 universals. <strong>At θ = 30° only.</strong> The plan is in <a href="simulation/design/SWEEP_PLAN.md"><code>simulation/design/SWEEP_PLAN.md</code></a> § “Stage 2 — per-sample Tier-2”. I did not run it yet because the biggest leverage move remains the Cr₂O₃ phonon model upgrade — once that lands, Stage 2 should re-baseline at a much lower χ² and any geometry refinement would land at the <em>right</em> basin instead of fitting around the oxide error.</p>
+<p>Per-sample geometry refinement under the locked Tier-1 universals. <strong>At <span class="math inline">\(\theta\)</span> = 30° only.</strong> The plan is in <a href="simulation/design/SWEEP_PLAN.md"><code>simulation/design/SWEEP_PLAN.md</code></a> § “Stage 2 — per-sample Tier-2”. I did not run it yet because the biggest leverage move remains the Cr<span class="math inline">\(_{2}\)</span>O<span class="math inline">\(_{3}\)</span> phonon model upgrade — once that lands, Stage 2 should re-baseline at a much lower <span class="math inline">\(\chi^{2}\)</span> and any geometry refinement would land at the <em>right</em> basin instead of fitting around the oxide error.</p>
 </section>
 <section id="whats-locked-whats-parked" class="level3">
 <h3 class="anchored" data-anchor-id="whats-locked-whats-parked">What’s locked, what’s parked</h3>
@@ -3491,8 +3508,8 @@ Parked (future research):
 <h3 class="anchored" data-anchor-id="untouched-bit-for-bit">Untouched — bit-for-bit</h3>
 <ul>
 <li>Every file in <a href="20260508_messages/"><code>20260508_messages/</code></a> is exactly as you sent it.</li>
-<li>Every parameter in your <code>test8.qmd §5</code> cell that you committed to (period, A₁, NA, β, t_oxide, oxide_dispersion, slices, polarisations, θ, φ_sim) has the same numerical value in the active <code>sweep_runner.py</code>, and the scripts that arrived at those values via the sweep land on your numbers.</li>
-<li>The Cr₂O₃ dispersion CSVs (<a href="data/materials/"><code>data/materials/Cr2O3_*.csv</code></a>) are frozen copies of <code>calientes_cromo.csv</code> / <code>indices_cromo.csv</code> — same numbers, more legible filenames.</li>
+<li>Every parameter in your <code>test8.qmd §5</code> cell that you committed to (period, <span class="math inline">\(A_1\)</span>, NA, <span class="math inline">\(\beta\)</span>, <span class="math inline">\(t_{\text{oxide}}\)</span>, oxide_dispersion, slices, polarisations, <span class="math inline">\(\theta\)</span>, <span class="math inline">\(\varphi_{\text{sim}}\)</span>) has the same numerical value in the active <code>sweep_runner.py</code>, and the scripts that arrived at those values via the sweep land on your numbers.</li>
+<li>The Cr<span class="math inline">\(_{2}\)</span>O<span class="math inline">\(_{3}\)</span> dispersion CSVs (<a href="data/materials/"><code>data/materials/Cr2O3_*.csv</code></a>) are frozen copies of <code>calientes_cromo.csv</code> / <code>indices_cromo.csv</code> — same numbers, more legible filenames.</li>
 <li>Your <code>solver.py</code> and <code>harmonics.py</code> patches to <code>rcwa</code> are unchanged. The active pipeline depends on them — <code>Solver.get_detected_reflectance(β)</code> and <code>Solver.theta_orders</code> are your additions, and they are load-bearing.</li>
 </ul>
 </section>
@@ -3517,8 +3534,8 @@ Parked (future research):
 <section id="documented-but-not-patched-high-severity-on-purpose" class="level3">
 <h3 class="anchored" data-anchor-id="documented-but-not-patched-high-severity-on-purpose">Documented but <strong>not</strong> patched (HIGH severity, on purpose)</h3>
 <ul>
-<li><strong>The oxide-skin geometry</strong> — vertical band vs normal-to-surface (<a href="ANALYSIS.md"><code>ANALYSIS.md §6.4</code></a>). I documented it but did not patch it: at our slopes (≤ 36°) the maximum effect is ~25 % path-length error on the slopes, and we have higher-leverage problems first (the Cr₂O₃ phonon model).</li>
-<li><strong>The Cr₂O₃ k(λ) extrapolation</strong> (<a href="ANALYSIS.md"><code>ANALYSIS.md §4 / §6.3</code></a>). This is the parked future-research item that, once fixed, should drop χ² substantially. I did not implement a Lorentz-oscillator replacement because it is a 2–5 day research project in its own right, not a one-evening patch.</li>
+<li><strong>The oxide-skin geometry</strong> — vertical band vs normal-to-surface (<a href="ANALYSIS.md"><code>ANALYSIS.md §6.4</code></a>). I documented it but did not patch it: at our slopes (<span class="math inline">\(\leq\)</span> 36°) the maximum effect is ~25 % path-length error on the slopes, and we have higher-leverage problems first (the Cr<span class="math inline">\(_{2}\)</span>O<span class="math inline">\(_{3}\)</span> phonon model).</li>
+<li><strong>The Cr<span class="math inline">\(_{2}\)</span>O<span class="math inline">\(_{3}\)</span> <span class="math inline">\(k(\lambda)\)</span> extrapolation</strong> (<a href="ANALYSIS.md"><code>ANALYSIS.md §4 / §6.3</code></a>). This is the parked future-research item that, once fixed, should drop <span class="math inline">\(\chi^{2}\)</span> substantially. I did not implement a Lorentz-oscillator replacement because it is a 2–5 day research project in its own right, not a one-evening patch.</li>
 </ul>
 <hr>
 </section>
@@ -3527,12 +3544,12 @@ Parked (future research):
 <h2 class="anchored" data-anchor-id="open-questions-for-you">14. Open questions for you</h2>
 <p>These are the things I would ask you over coffee, in order:</p>
 <ol type="1">
-<li><p><strong>What is the actual FTIR detector half-angle?</strong> β = 2° is my Stage-1 winner, β = 1° / 2° / 5° are degenerate — that whole plateau means “narrow cone, only the specular order survives”. If you happen to know the spec sheet number, it would either confirm or sharpen this. (<a href="simulation/design/DISTANCE.md"><code>DISTANCE.md §3</code></a> flags this as the one external question that closes the loop on β.)</p></li>
-<li><p><strong>Have you ever directly measured the Cr₂O₃ overlayer thickness on one of these samples?</strong> XPS depth profile, ellipsometry, profilometry, anything. My winning t_oxide = 0.9 µm is at the <em>edge</em> of the grid I swept, and the χ²-vs-t_oxide curve was still falling — the true minimum is plausibly thicker than 0.9 µm. Two paragraphs of measured evidence would replace several days of additional sweeping.</p></li>
-<li><p><strong>Cold dispersion parameters.</strong> You shipped <code>indices_cromo.csv</code> for the RS films, but the <code>datos_cromo</code> cell only documents the HS coefficients (a₀ = 0.010, a₁ = −0.04121, a₂ = 0.041509, E₀ = 5.13 eV, E_d = 19.2 eV). It would be helpful to have the RS coefficients committed next to those, so the CSVs can be regenerated from source when the model changes.</p></li>
-<li><p><strong>The 89° vs 1° puzzle.</strong> Stage 0b confirmed your φ_sim = 89° ↔︎ φ_exp = 0° empirically. But at the <em>other</em> end of the azimuth row (φ_exp = 90°) I had to use φ_sim = 1° to dodge the same singularity, and the matching is still good. Do you have an intuition (or a derivation) for why the rcwa azimuth convention sits at “90° − φ_exp”? It is the right answer but I would like to know <em>why</em> it is the right answer.</p></li>
-<li><p><strong>Did your AFM data give per-sample σ envelopes, or just a single trace?</strong> Section 4 of <em>Tratamiento</em> shows the ±σ envelope is real for SS_12-3 and is wider in valleys than at peaks. If you have that for the other five samples, a Rayleigh-Rice scattering correction with a per-sample σ_h fit (one of the parked research items) becomes immediately tractable.</p></li>
-<li><p><strong>Are there published Cr₂O₃ ε(λ) tables in the mid-IR you trust?</strong> If so, the highest-leverage upgrade (the phonon-aware k model) goes from a 5-day project to a few hours of editing.</p></li>
+<li><p><strong>What is the actual FTIR detector half-angle?</strong> <span class="math inline">\(\beta\)</span> = 2° is my Stage-1 winner, <span class="math inline">\(\beta\)</span> = 1° / 2° / 5° are degenerate — that whole plateau means “narrow cone, only the specular order survives”. If you happen to know the spec sheet number, it would either confirm or sharpen this. (<a href="simulation/design/DISTANCE.md"><code>DISTANCE.md §3</code></a> flags this as the one external question that closes the loop on <span class="math inline">\(\beta\)</span>.)</p></li>
+<li><p><strong>Have you ever directly measured the Cr<span class="math inline">\(_{2}\)</span>O<span class="math inline">\(_{3}\)</span> overlayer thickness on one of these samples?</strong> XPS depth profile, ellipsometry, profilometry, anything. My winning <span class="math inline">\(t_{\text{oxide}}\)</span> = 0.9 µm is at the <em>edge</em> of the grid I swept, and the <span class="math inline">\(\chi^{2}\)</span>-vs-<span class="math inline">\(t_{\text{oxide}}\)</span> curve was still falling — the true minimum is plausibly thicker than 0.9 µm. Two paragraphs of measured evidence would replace several days of additional sweeping.</p></li>
+<li><p><strong>Cold dispersion parameters.</strong> You shipped <code>indices_cromo.csv</code> for the RS films, but the <code>datos_cromo</code> cell only documents the HS coefficients (a₀ = 0.010, a₁ = −0.04121, a₂ = 0.041509, E₀ = 5.13 eV, <span class="math inline">\(E_d\)</span> = 19.2 eV). It would be helpful to have the RS coefficients committed next to those, so the CSVs can be regenerated from source when the model changes.</p></li>
+<li><p><strong>The 89° vs 1° puzzle.</strong> Stage 0b confirmed your <span class="math inline">\(\varphi_{\text{sim}}\)</span> = 89° ↔︎ <span class="math inline">\(\varphi_{\text{exp}}\)</span> = 0° empirically. But at the <em>other</em> end of the azimuth row (<span class="math inline">\(\varphi_{\text{exp}}\)</span> = 90°) I had to use <span class="math inline">\(\varphi_{\text{sim}}\)</span> = 1° to dodge the same singularity, and the matching is still good. Do you have an intuition (or a derivation) for why the rcwa azimuth convention sits at “90° − <span class="math inline">\(\varphi_{\text{exp}}\)</span>”? It is the right answer but I would like to know <em>why</em> it is the right answer.</p></li>
+<li><p><strong>Did your AFM data give per-sample <span class="math inline">\(\sigma\)</span> envelopes, or just a single trace?</strong> Section 4 of <em>Tratamiento</em> shows the <span class="math inline">\(\pm\sigma\)</span> envelope is real for SS_12-3 and is wider in valleys than at peaks. If you have that for the other five samples, a Rayleigh-Rice scattering correction with a per-sample <span class="math inline">\(\sigma\)</span>_h fit (one of the parked research items) becomes immediately tractable.</p></li>
+<li><p><strong>Are there published Cr<span class="math inline">\(_{2}\)</span>O<span class="math inline">\(_{3}\)</span> <span class="math inline">\(\varepsilon(\lambda)\)</span> tables in the mid-IR you trust?</strong> If so, the highest-leverage upgrade (the phonon-aware k model) goes from a 5-day project to a few hours of editing.</p></li>
 </ol>
 <hr>
 </section>
