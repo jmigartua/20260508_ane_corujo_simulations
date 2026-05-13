@@ -1,0 +1,145 @@
+---
+title: "Double-sinusoid test — does a 2nd harmonic help?"
+subtitle: "Stage-1 winner geometry + $A_2 \\sin(2kx + \\pi/2)$ at three amplitudes"
+author: "Bolu / Josu"
+date: 2026-05-09
+format:
+  html:
+    code-fold: false
+    toc: true
+    toc-depth: 2
+    embed-resources: true
+    fig-width: 8
+    fig-height: 7
+jupyter: rcwa-venv
+execute:
+  cache: false
+  echo: true
+  warning: false
+---
+
+> **Question (ii)** from the post-Stage-1 synthesis (DESIGN_LOG.md, 2026-05-09).
+> Section 5 of Ane's *Tratamiento* PDF shows the mean AFM profile of SS\_12-3
+> has **broader peaks and sharper valleys** than a pure sinusoid. We test
+> whether adding a fundamental + 2nd-harmonic profile,
+> $y(x) = A_1 \sin(kx) + A_2 \sin(2kx + \pi/2)$, improves the FTIR fit at
+> the Stage-1 winner geometry (t_oxide = 0.9 µm, β = 2°, oxide = HS_caliente,
+> NA = 39).
+
+# 1. Load all four configurations (baseline + 3 A_2 variants)
+
+```{python}
+#| label: load
+import sys
+from pathlib import Path
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+sys.path.insert(0, str(Path("./lib")))
+import sweep_runner as sr
+import plot_helpers
+plot_helpers._ensure_latex_rcparams()
+
+OUT          = Path("./sweep/runs/double_sin_test")
+results_csv  = OUT / "results.csv"
+traces_dir   = OUT / "traces"
+
+assert results_csv.exists(), f"Run `python sweep/bin/run_double_sin_test.py` first."
+df = pd.read_csv(results_csv).sort_values("A2_um").reset_index(drop=True)
+
+# Centre params (must match run_double_sin_test.py)
+CENTRE = dict(
+    period_um=12.9, A_um=1.5, t_oxide_um=0.9, oxide_dispersion="HS_caliente",
+    theta_deg=30.0, phi_sim_deg=89.0, harmonics=39, slices=50, beta_deg=2.0,
+    wavelengths_um=np.arange(3.0, 25.0, 0.25),
+)
+
+# Baseline (A2 = 0): Stage 1 winner trace
+BASELINE_STEM = sr.SimConfig(**CENTRE).filename_stem()
+BASELINE_AVG  = (Path("./sweep/runs/stage1_universals/traces")
+                 / BASELINE_STEM / f"AVG_{BASELINE_STEM}.csv")
+assert BASELINE_AVG.exists(), f"Stage-1 winner trace missing — {BASELINE_AVG}"
+
+# Score the baseline against the same target so all four rows share a metric
+metrics_baseline = sr.score(pd.read_csv(BASELINE_AVG), "12-3", 30, 0)
+
+print("Results — Stage-1 winner baseline + 3 A2 variants:")
+print(f"{'A2 (µm)':>8s}  {'phi2':>8s}  {'χ²_red':>10s}  {'RMSE':>7s}  {'Pearson r':>9s}")
+print(f"{'0.00':>8s}  {'(none)':>8s}  {metrics_baseline['Rdet_chi2_red']:>10.2f}  "
+      f"{metrics_baseline['Rdet_RMSE']:>7.4f}  {metrics_baseline['Rdet_pearson_r']:>9.4f}   ← baseline")
+for _, row in df.iterrows():
+    print(f"{row['A2_um']:>8.2f}  {row['phi2_rad']:>8.4f}  "
+          f"{row['Rdet_chi2_red']:>10.2f}  {row['Rdet_RMSE']:>7.4f}  {row['Rdet_pearson_r']:>9.4f}")
+```
+
+# 2. Comparison plot — top: each curve vs experiment; bottom: residuals
+
+```{python}
+#| label: plot
+EXP_DIR = Path("../data/experimental")
+exp_paths = sorted(EXP_DIR.glob("12-3_30_0_*.CSV"))
+
+# Pick the BEST A2 (smallest χ²_red across the 4) as the "main" curve in the plot;
+# pass the others as extra_sim_curves
+all_rows = pd.concat([
+    pd.DataFrame([{"A2_um": 0.0, "phi2_rad": 0.0,
+                   "Rdet_chi2_red": metrics_baseline["Rdet_chi2_red"],
+                   "_avg_path": str(BASELINE_AVG)}]),
+    df.assign(_avg_path=df.apply(
+        lambda r: str(traces_dir
+                      / sr.SimConfig(A2_um=r["A2_um"], phi2_rad=r["phi2_rad"], **CENTRE).filename_stem()
+                      / f"AVG_{sr.SimConfig(A2_um=r['A2_um'], phi2_rad=r['phi2_rad'], **CENTRE).filename_stem()}.csv"),
+        axis=1)),
+], ignore_index=True).sort_values("Rdet_chi2_red").reset_index(drop=True)
+
+best_row = all_rows.iloc[0]
+best_label = (rf"$A_2={best_row['A2_um']:g}$ µm" if best_row["A2_um"] > 0
+              else r"baseline ($A_2=0$)")
+
+extras = [
+    (Path(r["_avg_path"]),
+     rf"$A_2={r['A2_um']:g}$ µm" if r["A2_um"] > 0 else r"baseline ($A_2=0$)")
+    for _, r in all_rows.iloc[1:].iterrows()
+]
+
+fig, ax = plot_helpers.plot_comparison_with_residual(
+    sim_avg_path  = Path(best_row["_avg_path"]),
+    exp_paths     = exp_paths,
+    observable    = "R_det",
+    sample_label  = "12-3",
+    theta_exp_deg = 30,
+    phi_exp_deg   = 0,
+    beta_deg      = 2.0,
+    figsize       = (8, 7),
+    title         = (rf"Double-sin test at Stage-1 winner — "
+                     rf"best: {best_label}, $\chi^2_{{\mathrm{{red}}}}={best_row['Rdet_chi2_red']:.1f}$"),
+    extra_sim_curves = extras,
+)
+plt.show()
+```
+
+# 3. Decision
+
+```{python}
+#| label: decision
+chi2_baseline = metrics_baseline["Rdet_chi2_red"]
+best_chi2 = float(all_rows.iloc[0]["Rdet_chi2_red"])
+delta = chi2_baseline - best_chi2
+
+print(f"Baseline (A2 = 0)        : χ²_red = {chi2_baseline:.2f}")
+print(f"Best double-sin variant  : χ²_red = {best_chi2:.2f}  "
+      f"(A2 = {all_rows.iloc[0]['A2_um']:g} µm, φ2 = {all_rows.iloc[0]['phi2_rad']:.4f} rad)")
+print(f"Δχ²_red                  : {delta:+.2f}    ({delta / chi2_baseline:+.1%})")
+print()
+if best_chi2 < chi2_baseline - 5:
+    print("✓ Double sinusoid HELPS — meaningful improvement vs baseline.")
+    print("  Recommendation: re-run Stage 1 with this A2/phi2 fixed.")
+elif best_chi2 < chi2_baseline + 5:
+    print("◌ Inconclusive — within ±5 χ² of baseline. Worth a wider sweep")
+    print("  over (A2, phi2) before committing to either model.")
+else:
+    print("✗ Double sinusoid HURTS — pure sin is preferred.")
+    print("  Conclusion: the ~10 pp amplitude residual is NOT shape-driven;")
+    print("  it's most likely the Cr2O3 phonon model (ANALYSIS.md §4).")
+```

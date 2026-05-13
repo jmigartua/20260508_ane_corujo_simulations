@@ -1,0 +1,177 @@
+---
+title: "Run one RCWA configuration — canonical single-config driver"
+subtitle: "The unit cell of every sweep stage"
+author: "Bolu / Josu"
+date: 2026-05-09
+format:
+  html:
+    code-fold: false
+    toc: true
+    toc-depth: 2
+    embed-resources: true
+    fig-width: 7.5
+    fig-height: 6.5
+jupyter: rcwa-venv
+execute:
+  cache: false
+  echo: true
+  warning: false
+---
+
+# What this document is
+
+The **refined, parameterised** version of [test8.qmd](../ane_originals/test8.qmd). Same physics,
+zero copy-paste — every step is a function call into the orchestration
+module at [lib/sweep_runner.py](../lib/sweep_runner.py).
+
+This is the *unit cell* of every stage of the configuration-space sweep
+([SWEEP_PLAN.md](../design/SWEEP_PLAN.md)). A stage qmd loops `run_one_config`
+over its parameter grid; this document runs it exactly once and shows the
+result.
+
+> **Why we have both this and test8.qmd.** test8.qmd is the verbatim
+> reproduction of Ane's notebook — kept as the historical reference, with all
+> the inline boilerplate. This file imports the same physics from
+> sweep_runner and is what every future driver builds on.
+
+# 1. Imports and configuration
+
+```{python}
+#| label: setup
+import sys, time
+from pathlib import Path
+import numpy as np
+
+# Make the sweep package importable regardless of where Quarto runs us from
+sys.path.insert(0, str(Path.cwd() / "lib"))
+
+import sweep_runner as sr
+from plot_helpers import plot_sim_vs_exp
+import matplotlib.pyplot as plt
+
+# ── The single configuration to evaluate ────────────────────────────
+cfg = sr.SimConfig(
+    period_um        = 12.9,                   # grating period (µm)
+    A_um             = 1.5,                    # half-amplitude (depth = 2A = 3.0 µm)
+    t_oxide_um       = 0.9,                    # Cr₂O₃ overlayer thickness (µm)
+    oxide_dispersion = "HS_caliente",          # {"HS_caliente", "RS_frio"}
+    theta_deg        = 30.0,                   # incidence polar angle
+    phi_sim_deg      = 89.0,                   # rcwa azimuth (≡ φ_exp = 0° per Ane)
+    harmonics        = 35,                     # NA — fix once Stage 0a converges
+    slices           = 50,
+    beta_deg         = 2.0,                    # detector aperture cone (full)
+    wavelengths_um   = np.arange(3.0, 25.0, 0.25),
+)
+
+# ── The experimental triple this configuration is being scored against ───
+SAMPLE        = "12-3"
+THETA_EXP_DEG = 30
+PHI_EXP_DEG   = 0
+
+# ── Output location ──────────────────────────────────────────────────
+OUT = Path.cwd() / "exploratory/runs/adhoc"
+OUT.mkdir(exist_ok=True)
+
+print("Configuration to evaluate:")
+for k, v in cfg.__dict__.items():
+    if k != "wavelengths_um":
+        print(f"  {k:<18s} = {v}")
+print(f"  wavelengths_um   = {cfg.wavelengths_um.min()}–{cfg.wavelengths_um.max()} µm "
+      f"({len(cfg.wavelengths_um)} pts)")
+print(f"  filename_stem    = {cfg.filename_stem()}")
+print()
+print(f"Scoring against: sample={SAMPLE}, θ={THETA_EXP_DEG}°, φ_exp={PHI_EXP_DEG}°")
+```
+
+# 2. Solve and score
+
+```{python}
+#| label: run
+
+t0 = time.time()
+result = sr.run_one_config(
+    cfg            = cfg,
+    sample         = SAMPLE,
+    theta_exp_deg  = THETA_EXP_DEG,
+    phi_exp_deg    = PHI_EXP_DEG,
+    output_dir     = OUT,
+)
+print(f"\nDone in {time.time() - t0:.1f}s")
+print()
+print("Metrics (smaller is better, except pearson_r):")
+print(f"  N (overlap)         = {result['n_overlap']}")
+print(f"  χ²_red(R_total)     = {result['R_chi2_red']:7.2f}")
+print(f"  χ²_red(R_det β=2°)  = {result['Rdet_chi2_red']:7.2f}")
+print(f"  RMSE(R_det)         = {result['Rdet_RMSE']:.4f}")
+print(f"  MAE(R_det)          = {result['Rdet_MAE']:.4f}")
+print(f"  max|res|(R_det)     = {result['Rdet_max_abs']:.4f}")
+print(f"  Pearson r(R_det)    = {result['Rdet_pearson_r']:.4f}")
+print(f"  ⟨R_exp - R_sim⟩     = (mean over overlap)")
+print(f"  output csv          = {result['sim_csv']}")
+```
+
+# 3. Plot — simulation vs experiment
+
+```{python}
+#| label: plot
+
+stem = cfg.filename_stem()
+exp_files = sorted(
+    (Path.cwd().parent / "data" / "experimental").glob(
+        f"{SAMPLE}_{THETA_EXP_DEG}_{int(PHI_EXP_DEG) if PHI_EXP_DEG == int(PHI_EXP_DEG) else PHI_EXP_DEG}_*.CSV"
+    )
+)
+
+fig, ax = plot_sim_vs_exp(
+    sim_lx_path   = OUT / f"LX_{stem}.csv",
+    sim_ly_path   = OUT / f"LY_{stem}.csv",
+    sim_avg_path  = OUT / f"AVG_{stem}.csv",
+    exp_paths     = exp_files,
+    sample_label  = SAMPLE,                   # gets escaped to SS\_12\_3 by the helper
+    theta_exp_deg = THETA_EXP_DEG,
+    phi_exp_deg   = PHI_EXP_DEG,
+    beta_deg      = cfg.beta_deg,
+    figsize       = (7.5, 6.5),
+)
+plt.show()
+```
+
+# 4. Anatomy — why this is the right unit cell
+
+Each cell of the configuration-space sweep is exactly the call above:
+
+```python
+result = run_one_config(cfg, sample, theta_exp_deg, phi_exp_deg, output_dir)
+# returns a dict ready to append to a sweep CSV row
+```
+
+A stage qmd is then nothing but
+
+```python
+rows = []
+for params in stage_grid:
+    cfg = sr.SimConfig(**params)
+    rows.append(sr.run_one_config(cfg, sample, theta_exp_deg, phi_exp_deg, OUT))
+pd.DataFrame(rows).to_csv("stageX_results.csv", index=False)
+```
+
+Compare with the original [test8.qmd](../ane_originals/test8.qmd) §5 which inlines `datos_cromo`,
+`discretize_rugosity_with_oxide`, the wavelength loop, the polarisation loop,
+the per-pol CSV save, the average, and the plot — all in one cell, ~150 lines.
+The decoupling we just shipped:
+
+| Concern | Lives in | Tested in |
+|---|---|---|
+| Material splines (SS, Cr₂O₃) | `sweep_runner.ss_splines`, `sweep_runner.oxide_splines` | smoke test on import |
+| Geometry generator | `sweep_runner.sinusoidal_profile` | shape-checked |
+| Layer discretisation | `sweep_runner.discretize_with_oxide` | byte-equivalent to Ane's function |
+| RCWA solve (one config, both pols) | `sweep_runner.solve_one` | this document |
+| Polarisation average | `sweep_runner.average_polarisations` | this document |
+| Experimental loader | `sweep_runner.load_experimental_repeats` | covered by `score` |
+| Distance metric | `sweep_runner.score` | matches compare.qmd's standalone calc |
+| End-to-end orchestration | `sweep_runner.run_one_config` | this document |
+| Comparison plot | `plot_helpers.plot_sim_vs_exp` | this document, [test8_plot.qmd](test8_plot.qmd) |
+
+> Every subsequent stage qmd (Stage 0a NA convergence, Stage 1 Tier-1 sweep,
+> Stage 2 Tier-2 geometry sweep) imports the same two modules and never
+> reimplements any of the above.

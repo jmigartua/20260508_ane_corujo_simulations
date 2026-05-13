@@ -1,0 +1,27 @@
+2026-05-09 16:36:18,489  INFO     ======================================================================
+2026-05-09 16:36:18,489  INFO     Double-sin test — at Stage-1 winner
+2026-05-09 16:36:18,489  INFO       A2 grid (µm)      = [0.1, 0.2, 0.3]
+2026-05-09 16:36:18,489  INFO       phi2 (rad)        = 1.5708  (90.0°)
+2026-05-09 16:36:18,489  INFO       parallel          = 1
+2026-05-09 16:36:18,489  INFO       output            = /Users/User/Desktop/2026/20260508_ane_corujo_simulations/simulation/sweep/runs/double_sin_test
+2026-05-09 16:36:18,490  INFO     DRY RUN — would compute A2 = [0.1, 0.2, 0.3]
+2026-05-09 16:36:28,715  INFO     ======================================================================
+2026-05-09 16:36:28,715  INFO     Double-sin test — at Stage-1 winner
+2026-05-09 16:36:28,715  INFO       A2 grid (µm)      = [0.1, 0.2, 0.3]
+2026-05-09 16:36:28,716  INFO       phi2 (rad)        = 1.5708  (90.0°)
+2026-05-09 16:36:28,716  INFO       parallel          = 3
+2026-05-09 16:36:28,716  INFO       output            = /Users/User/Desktop/2026/20260508_ane_corujo_simulations/simulation/sweep/runs/double_sin_test
+2026-05-09 16:36:28,716  INFO     Spawning 3 workers …
+2026-05-09 16:44:18,508  INFO       A2=0.30: χ²_red(R_det)= 104.18  RMSE=0.1021  pearson=0.9826
+2026-05-09 16:44:18,545  INFO       A2=0.10: χ²_red(R_det)= 126.75  RMSE=0.1126  pearson=0.9782
+2026-05-09 16:44:20,660  INFO       A2=0.20: χ²_red(R_det)= 113.77  RMSE=0.1067  pearson=0.9827
+2026-05-09 16:44:21,108  INFO     Wall time: 472.4s (7.9 min)
+2026-05-09 16:56:09,184  INFO     ======================================================================
+2026-05-09 16:56:09,184  INFO     Double-sin test — at Stage-1 winner
+2026-05-09 16:56:09,184  INFO       A2 grid (µm)      = [0.35]
+2026-05-09 16:56:09,184  INFO       phi2 (rad)        = 1.5708  (90.0°)
+2026-05-09 16:56:09,185  INFO       parallel          = 1
+2026-05-09 16:56:09,185  INFO       output            = /Users/User/Desktop/2026/20260508_ane_corujo_simulations/simulation/sweep/runs/double_sin_test
+2026-05-09 16:56:09,185  INFO       A2=0.35: starting …
+2026-05-09 17:02:22,299  INFO       A2=0.35: χ²_red(R_det)= 101.10  RMSE=0.1006  pearson=0.9804
+2026-05-09 17:02:22,304  INFO     Wall time: 373.1s (6.2 min)

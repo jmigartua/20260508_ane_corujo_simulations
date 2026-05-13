@@ -1,0 +1,112 @@
+# Today's path — full chronology
+
+## Setup & first analysis
+
+- Created Python 3.12 venv at [.venv/](.venv/), wrote [requirements.txt](requirements.txt), installed `rcwa` 1.0.48 + scientific stack
+- Smoke-tested rcwa: vacuum/n=3 interface gives R=0.25, T=0.75 exactly (Fresnel match)
+- Read all 7 files in [20260508_messages/](20260508_messages/) — Ane's email archive: 2 ipynb + 4 csvs + Al-Kuhaili & Durrani Cr₂O₃ paper
+- Wrote [ANALYSIS.md](ANALYSIS.md) at project root — 8 numbered issues catalogued (high-leverage: Cr₂O₃ k(λ) extrapolated 10× past fit range, no phonons)
+- Confirmed `SS_letter (1).csv` columns are ε′, ε″ not n,k (header lies; code uses them right)
+
+## Reproduction
+
+- Installed Ane's patched `solver.py` and `harmonics.py` over the venv's rcwa (added `theta_orders` and `get_detected_reflectance(β)`)
+- Converted [Test8_full (1).ipynb](20260508_messages/Test8_full%20(1).ipynb) → `test8.qmd`; rendered, verified energy conservation R+T+A = 1.000000
+- Extended wavelength range 18→25 µm; auto-looped LX/LY polarisations + saved AVG; confirmed `period`/`prof`/`theta`/`phi` in `Representacion.qmd` are filename-glob params, not simulation inputs
+
+## Plot iteration & decoupling
+
+- Multiple plot revisions: faded LX/LY (alpha 0.30), bold AVG, experimental overlay; tried mathtext → switched to real LaTeX (`text.usetex=True`, MacTeX); fixed horizontal scrolling by stacking 2 panels at figsize=(7.5, 6.5)
+- Decoupled: split simulation from plotting — `test8_plot.qmd` loads CSVs (30 s render) instead of re-running RCWA (4 min)
+- Built [simulate.qmd](simulation/exploratory/simulate.qmd) as canonical single-config driver using [lib/sweep_runner.py](simulation/lib/sweep_runner.py); **bit-identical parity** with test8.qmd verified (Δ = 0.00e+00 on every column)
+- Created `plot_helpers.py` with `plot_sim_vs_exp` and later `plot_comparison_with_residual` (new standard: top y∈[-0.03, 1.03], bottom = residual)
+
+## Project architecture
+
+- Tier 1 reorg (intermediate): `archive/`, `docs/`, `interactive/`, `bin/`, `lib/` under simulation/
+- **Project-level redesign** (final): moved to root: `data/{experimental,materials}/`, `ane_originals/`, kept `simulation/{design,exploratory,sweep,lib}/`
+- Material data renamed clearly: `SS_permittivity.csv`, `Cr2O3_HS_caliente.csv`, `Cr2O3_RS_frio.csv`
+- Split logs: `CONVERSATION_LOG.md` → [DESIGN_LOG.md](DESIGN_LOG.md) (verbatim discussions) + [RUN_LOG.md](RUN_LOG.md) (run history)
+- Quarto config `_quarto.yml` with `execute-dir: project` (lesson: it's a project-level key, not under `execute:`)
+- Wrote project [README.md](README.md), per-folder READMEs in `data/experimental/`, `data/materials/`, `ane_originals/`
+- Diagnosed and noted in DESIGN_LOG: `SimConfig.filename_stem()` rounding bug (`:.0f` → `:g`) — 89.999 was colliding with 90.0
+
+## Comparison & distance metric
+
+- Copied 321 FTIR CSVs into local read-only [data/experimental/](data/experimental/)
+- Defined **distance metric** in [DISTANCE.md](simulation/design/DISTANCE.md): reduced χ² with 1% noise floor
+- First comparison ([compare.qmd](simulation/exploratory/compare.qmd)): SS_12-3 at θ=30°, φ_exp=0° → **χ²_red = 137 with R_det(β=2°), Pearson r = 0.97** vs χ²_red = 749 with R_total → **FTIR detector is aperture-limited**, not hemispherical
+- DISTANCE.md v0.2: tiered configuration-space framework (Tier 1: must-sweep · Tier 2: priors · Tier 3: fix · Tier 4: exclude)
+
+## Configuration-space exploration (in order)
+
+- **Stage 0a** — NA convergence: 8 runs at θ=30°, NA ∈ {15..51}, parallel 4, 17.1 min wall. **NA = 39 chosen** (max|Δ vs NA=51| = 0.0063 < σ_floor=0.01)
+- **Stage 0b** — φ-convention sanity check: 4 runs at φ_sim ∈ {0°, 1°, 89°, 90°}. **φ_sim = 89° ↔ φ_exp = 0° confirmed**. φ_sim=0° hit Singular matrix; φ_sim=90° silently went to a different code branch (χ²=597 vs 89°'s χ²=225). Filename `:g` format introduced after the bug
+- **Stage 1** — universal Tier-1 sweep: 84 runs over `t_oxide × β × oxide_dispersion`, parallel 4, 215 min. **Best: t_oxide = 0.90 µm · β = 2° · HS_caliente · χ²_red = 138.83 · Pearson r = 0.972** — exactly matches Ane's empirical fit for SS_12-3. **Safety rail tripped** (χ²>>1)
+
+## Two-PDF synthesis (Ane's prior work read in full)
+
+- Read `Tratamiento de imágenes` (6 pp) — AFM data + sin(x) fit per sample. SS_12-3 fit: period=12.9, depth=3.0 — **same as our values**
+- Read `AJUSTE DE PARÁMETROS` (14 pp) — page 11+13 show Ane's "CORRECCIÓN DE BETA" (10°→2°) — **independent corroboration of our β=2°**
+- Cross-validation: our independent χ² minimisation **converged on Ane's empirical answer**
+
+## σ(λ) inspection (question i)
+
+- 3 FTIR repeats of `12-3_30_0_*.CSV` analysed in [inspect_sigma.qmd](simulation/exploratory/inspect_sigma.qmd)
+- **σ at R-peaks = 0.0103, σ at R-valleys = 0.0046 (ratio 2.22×)** → wavelength-dependent structure → empirical support for spatial heterogeneity in oxide thickness across the FTIR spot
+
+## Double-sin test (question ii)
+
+- Added `A2_um`, `phi2_rad` to `SimConfig`; 2nd-harmonic profile in `sinusoidal_profile()`; backward-compat filename stems (suffix only when A₂≠0)
+- Tested A₂ ∈ {0.10, 0.20, 0.30, 0.35} µm at φ₂=π/2 (broader peaks / sharper valleys per AFM)
+- Monotonic χ² improvement: 138.8 → 126.7 → 113.8 → 104.2 → 101.1, then trend flattens. **Locked A₂ = 0.30 µm, φ₂ = π/2**, Δχ² = −25 %, Pearson r climbs to 0.983
+- Found and documented `--resume` bug in `run_double_sin_test.py`: results.csv unconditional overwrite — rebuilt by re-scoring traces
+
+## Stage δ — (θ, φ) validation across 15 conditions for SS_12-3
+
+- 3 θ × 5 φ_exp = 15 runs at locked universals (NA=39, t_oxide=0.9, β=2°, HS_caliente, A₂=0.30, φ₂=π/2), 40.7 min wall
+- φ_sim = 90° − φ_exp (with 1° offset at the 0°/90° singularities)
+- **At θ=30°: row uniform** (χ² 75–104, ratio 1.4×) → mapping vindicated
+- **At θ=60°: catastrophe** (χ² 423–1158, Pearson r drops to 0.86)
+- Aggregate **max/min χ² ratio = 15.3 ×** → strong angular dependence
+
+## Diagnostics (A) and (B)
+
+- **(A)** Semi-infinite SS substrate: implemented `SimConfig.semi_infinite_substrate` flag, ran worst+reference cells. **REJECTED — bit-identical to baseline** (skin depth ≈ 100 nm; 200 µm SS slab already optically semi-infinite, light decays by e^(-2500))
+- **(B)** NA convergence at θ=60°: NA ∈ {51, 75, 91}, 47.2 min wall. **REJECTED — χ² goes wrong way** (1158 → 1179 → 1201 → 1210). NA=39 is converged at θ=60° too
+
+## The deeper diagnosis
+
+- Sim ⟨R_det⟩ = 0.69 at θ=60°; experimental ⟨R⟩ = 0.37 → **33-percentage-point amplitude gap** (5× the residual at θ=30°)
+- Experimental R *drops* at glancing — **unphysical for an idealised perfect-grating + smooth-metal model**
+- Cause is **physics-modelling gap**, not numerics:
+  - Diffuse scattering from non-periodic surface roughness (RCWA on a perfect sinusoid has no channel for it)
+  - Geometry-amplified Cr₂O₃ absorption (path through oxide doubles at θ=60°; our extrapolated k(λ) likely undermodels)
+  - Polarisation handling — LX/LY ≠ unpolarised at grazing where TE/TM diverge
+- User clarified **no phonon-aware Cr₂O₃ ε exists in the IR literature** → option (γ) reframed as research project
+
+## Decision: F1 — document and proceed at θ=30° only
+
+- **Domain of validity: θ ≤ 30°, possibly 45°.** Outside that the model can't reach.
+- Created [simulation/design/MODEL_DOMAIN_OF_VALIDITY.md](simulation/design/MODEL_DOMAIN_OF_VALIDITY.md) v1.0 — 9-section comprehensive limitation document
+- Updated [README.md](README.md) to point at it: "Read this before extending the model"
+- F2 (modelling diffuse losses, phonon Cr₂O₃, AFM mean profile) parked as future research; F3 (more cheap diagnostics) skipped
+
+## Locked configuration (as of end-of-day)
+
+```
+NA           = 39             (Stage 0a, reverified at θ=60° in Diagnostic B)
+φ_sim ↔ φ_exp= 90° − φ_exp    with 1° offsets at the 0°/90° singularities (Stage 0b)
+t_oxide      = 0.90 µm        (Stage 1; matches Ane independently)
+β            = 2°             (Stage 1, plateau-degenerate but matches Ane)
+oxide_disp   = HS_caliente    (Stage 1)
+A₂           = 0.30 µm        (double-sin test)
+φ₂           = π/2 rad        (double-sin test)
+domain       = θ ≤ 30°        (45° marginal, 60° catastrophic)
+```
+
+## Pending — Stage 2 proposed (waiting for green light)
+
+- **Stage 2a — generalisation pass** at locked universals across all 6 samples (`6-1, 6-3, 12-1, 12-3, 18-1, 18-3`) using AFM-fitted period/depth (page 5 of *Tratamiento*) at θ=30° × 5 φ_exp = 25 new runs (~30–45 min wall)
+- Outcome forks Stage 2b: if some samples need different `t_oxide`, do per-sample t_oxide refinement
+- Skipping θ ≥ 45° per F1 decision; skipping Cr₂O₃ phonon model per Stage 1 finding

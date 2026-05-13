@@ -1,0 +1,15 @@
+project:
+  type: default
+  execute-dir: project           # cwd = simulation/ for every render, regardless of subfolder depth
+  render:
+    - "sweep/reports/*.qmd"      # NEW paradigm — script-driven sweep reports
+    - "exploratory/*.qmd"        # interactive single-config tools
+
+# No project-wide output-dir — each rendered .html lands beside its .qmd, so each
+# zone (sweep/, exploratory/) is fully self-contained.
+#
+# ane_originals/ is OUTSIDE this Quarto project — it's read-only historical reference
+# at the project root, not under simulation/.
+
+execute:
+  freeze: false                  # cells re-execute on every render unless explicitly cached

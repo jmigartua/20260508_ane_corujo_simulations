@@ -1,0 +1,28 @@
+2026-05-09 08:49:08,212  INFO     ======================================================================
+2026-05-09 08:49:08,213  INFO     Stage 0a — NA convergence
+2026-05-09 08:49:08,213  INFO       NA grid           = [15, 19, 23, 27, 31, 35, 39, 51]
+2026-05-09 08:49:08,213  INFO       parallel          = 1
+2026-05-09 08:49:08,213  INFO       resume            = False
+2026-05-09 08:49:08,213  INFO       dry_run           = True
+2026-05-09 08:49:08,213  INFO       output            = /Users/User/Desktop/2026/20260508_ane_corujo_simulations/simulation/runs/stage0a_NA_convergence
+2026-05-09 08:49:08,213  INFO       centre params     = period=12.9µm, A=1.5µm, t_oxide=0.3µm, oxide=HS_caliente, theta=30.0°, phi_sim=89.0°, beta=2.0°
+2026-05-09 08:49:08,213  INFO     DRY RUN — would compute NA = [15, 19, 23, 27, 31, 35, 39, 51]
+2026-05-09 09:29:56,312  INFO     ======================================================================
+2026-05-09 09:29:56,312  INFO     Stage 0a — NA convergence
+2026-05-09 09:29:56,313  INFO       NA grid           = [15, 19, 23, 27, 31, 35, 39, 51]
+2026-05-09 09:29:56,313  INFO       parallel          = 4
+2026-05-09 09:29:56,313  INFO       resume            = False
+2026-05-09 09:29:56,313  INFO       dry_run           = False
+2026-05-09 09:29:56,313  INFO       output            = /Users/User/Desktop/2026/20260508_ane_corujo_simulations/simulation/runs/stage0a_NA_convergence
+2026-05-09 09:29:56,313  INFO       centre params     = period=12.9µm, A=1.5µm, t_oxide=0.3µm, oxide=HS_caliente, theta=30.0°, phi_sim=89.0°, beta=2.0°
+2026-05-09 09:29:56,313  INFO     Spawning 4 workers …
+2026-05-09 09:31:02,387  INFO       NA= 15: χ²_red(R_det)= 158.28  RMSE=0.1258  pearson=0.9435
+2026-05-09 09:31:43,910  INFO       NA= 19: χ²_red(R_det)= 177.31  RMSE=0.1332  pearson=0.9405
+2026-05-09 09:32:27,008  INFO       NA= 23: χ²_red(R_det)= 193.56  RMSE=0.1391  pearson=0.9377
+2026-05-09 09:33:20,526  INFO       NA= 27: χ²_red(R_det)= 206.15  RMSE=0.1436  pearson=0.9353
+2026-05-09 09:35:55,240  INFO       NA= 31: χ²_red(R_det)= 214.98  RMSE=0.1466  pearson=0.9335
+2026-05-09 09:38:01,110  INFO       NA= 35: χ²_red(R_det)= 221.18  RMSE=0.1487  pearson=0.9323
+2026-05-09 09:40:41,001  INFO       NA= 39: χ²_red(R_det)= 224.89  RMSE=0.1500  pearson=0.9316
+2026-05-09 09:46:59,210  INFO       NA= 51: χ²_red(R_det)= 227.79  RMSE=0.1509  pearson=0.9309
+2026-05-09 09:47:00,082  INFO     Wall time: 1023.8s (17.1 min)
+2026-05-09 09:47:00,082  INFO     Results CSV: /Users/User/Desktop/2026/20260508_ane_corujo_simulations/simulation/runs/stage0a_NA_convergence/results.csv

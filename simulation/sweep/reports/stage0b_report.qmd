@@ -1,0 +1,173 @@
+---
+title: "Stage 0b — φ-convention sanity check (report)"
+subtitle: "Locked simulation azimuth corresponding to φ_exp = 0°"
+author: "Bolu / Josu"
+date: 2026-05-09
+format:
+  html:
+    code-fold: false
+    toc: true
+    toc-depth: 2
+    embed-resources: true
+    fig-width: 10
+    fig-height: 4.5
+jupyter: rcwa-venv
+execute:
+  cache: false
+  echo: true
+  warning: false
+---
+
+> **Decoupled report.** Reads the outputs of [bin/run_stage0b.py](../bin/run_stage0b.py)
+> from [runs/stage0b_phi_convention/](../runs/stage0b_phi_convention/) — does **not** run
+> RCWA. Renders in seconds.
+>
+> If the output directory does not yet exist, run the script first:
+>
+> ```
+> python sweep/bin/run_stage0b.py --parallel 4
+> ```
+
+# 1. Load results
+
+```{python}
+#| label: load
+import sys
+from pathlib import Path
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# LaTeX (Computer Modern), consistent with other reports
+plt.rcParams.update({
+    "text.usetex":     True,
+    "font.family":     "serif",
+    "font.size":       9,
+    "axes.titlesize":  10,
+    "axes.labelsize":  10,
+    "legend.fontsize": 8,
+    "text.latex.preamble": r"\usepackage{amsmath}\usepackage{amssymb}",
+})
+
+sys.path.insert(0, str(Path("./lib")))
+import sweep_runner as sr
+
+OUT          = Path("./sweep/runs/stage0b_phi_convention")
+results_csv  = OUT / "results.csv"
+decision_txt = OUT / "decision.txt"
+traces_dir   = OUT / "traces"
+
+assert results_csv.exists(), f"Run `python sweep/bin/run_stage0b.py` first — {results_csv} not found."
+df = pd.read_csv(results_csv).sort_values("phi_sim_deg").reset_index(drop=True)
+
+cols = ["phi_sim_deg", "Rdet_chi2_red", "Rdet_RMSE",
+        "Rdet_pearson_r", "R_chi2_red", "runtime_s"]
+df[cols].round(4)
+```
+
+# 2. R_det(λ) per φ_sim, with experimental ⟨R⟩
+
+```{python}
+#| label: figure
+
+CENTRE = dict(
+    period_um        = 12.9,
+    A_um             = 1.5,
+    t_oxide_um       = 0.30,
+    oxide_dispersion = "HS_caliente",
+    theta_deg        = 30.0,
+    harmonics        = 39,        # locked by Stage 0a
+    slices           = 50,
+    beta_deg         = 2.0,
+    wavelengths_um   = np.arange(3.0, 25.0, 0.25),
+)
+SAMPLE = "12-3"
+THETA_EXP, PHI_EXP = 30, 0
+
+# Experimental ⟨R⟩ ± σ (interpolated onto the simulation λ grid for the overlay)
+from scipy.interpolate import interp1d
+EXP_DIR = Path("../data/experimental")
+exp_files = sorted(EXP_DIR.glob(f"{SAMPLE}_{THETA_EXP}_{PHI_EXP}_*.CSV"))
+exp_repeats = []
+for f in exp_files:
+    raw = pd.read_csv(f, header=None, names=["wn", "R_pct"])
+    raw = raw[raw["R_pct"] > 0].copy()
+    raw["lambda_um"] = 1e4 / raw["wn"]
+    raw["R"] = raw["R_pct"] / 100.0
+    raw = raw.sort_values("lambda_um").reset_index(drop=True)
+    exp_repeats.append((raw["lambda_um"].values, raw["R"].values))
+
+lam_sim = CENTRE["wavelengths_um"]
+R_stack = np.array([
+    interp1d(l, r, bounds_error=False, fill_value=np.nan, assume_sorted=True)(lam_sim)
+    for l, r in exp_repeats
+])
+R_exp_mean = np.nanmean(R_stack, axis=0)
+R_exp_std  = np.nanstd(R_stack, axis=0, ddof=1)
+
+# Plot
+fig, ax = plt.subplots(1, 2, figsize=(10, 4.5), constrained_layout=True)
+
+phi_grid = sorted(df["phi_sim_deg"].astype(float).tolist())
+cmap = plt.cm.viridis
+chi2_per_phi = {}
+
+for i, phi in enumerate(phi_grid):
+    cfg = sr.SimConfig(phi_sim_deg=phi, **CENTRE)
+    stem = cfg.filename_stem()
+    avg = pd.read_csv(traces_dir / stem / f"AVG_{stem}.csv")
+    color = cmap(i / max(len(phi_grid) - 1, 1))
+    chi2 = float(df[df["phi_sim_deg"] == phi]["Rdet_chi2_red"].iloc[0])
+    chi2_per_phi[phi] = chi2
+    ax[0].plot(avg["x"], avg["R_det"], lw=1.4, color=color,
+               label=rf"$\varphi_{{\mathrm{{sim}}}}={phi:g}^{{\circ}}\;(\chi^2_{{\mathrm{{red}}}}={chi2:.0f})$")
+
+# Experimental overlay
+ax[0].fill_between(lam_sim, R_exp_mean - R_exp_std, R_exp_mean + R_exp_std,
+                   color="C2", alpha=0.20)
+ax[0].plot(lam_sim, R_exp_mean, color="C2", lw=2.0,
+           label=r"$\langle R \rangle_{\mathrm{exp}}\!\pm\!\sigma$")
+
+ax[0].set_xlabel(r"$\lambda \;[\mu\mathrm{m}]$")
+ax[0].set_ylabel(r"$\langle R_{\mathrm{det}} \rangle_{\mathrm{sim}}\,(\beta=2^{\circ})$")
+ax[0].set_title(r"$R_{\mathrm{det}}(\lambda)$ vs simulation azimuth $\varphi_{\mathrm{sim}}$")
+ax[0].legend(loc="lower right", framealpha=0.85, fontsize=7)
+ax[0].grid(True, alpha=0.4)
+
+# χ² bar chart
+phi_list = sorted(chi2_per_phi)
+chi2_list = [chi2_per_phi[p] for p in phi_list]
+chosen_phi = min(chi2_per_phi, key=chi2_per_phi.get)
+colors = ["C2" if p == chosen_phi else "C0" for p in phi_list]
+ax[1].bar([f"{p:g}°" for p in phi_list], chi2_list, color=colors)
+ax[1].set_xlabel(r"$\varphi_{\mathrm{sim}}$")
+ax[1].set_ylabel(r"$\chi^2_{\mathrm{red}}(R_{\mathrm{det}})$")
+ax[1].set_title(rf"argmin = $\varphi_{{\mathrm{{sim}}}} = {chosen_phi:g}^{{\circ}}$")
+ax[1].grid(True, alpha=0.4, axis="y")
+
+plt.show()
+```
+
+# 3. Decision
+
+```{python}
+#| label: decision
+if decision_txt.exists():
+    print(decision_txt.read_text())
+else:
+    print("decision.txt not found — re-run with: python sweep/bin/run_stage0b.py --resume")
+```
+
+# 4. What this locks in
+
+The chosen `φ_sim` corresponds to experimental `φ_exp = 0°`. Every
+subsequent stage (Stage 1, Stage 2, Stage 3) uses this fixed mapping
+between the two coordinate conventions when scoring against
+experimental data at any φ_exp.
+
+Combined with Stage 0a (NA = 39 locked), the convergence /
+convention pair is now nailed down. Tier-1 universal sweep
+(`t_oxide × β × oxide_dispersion`) is unblocked.
+
+> See [docs/SWEEP_PLAN.md](../../design/SWEEP_PLAN.md) "Stage 1" for the
+> next step.

@@ -1,0 +1,135 @@
+---
+title: "Stage 0a — NA convergence (report)"
+subtitle: "Locked harmonics count for sample SS_12_3"
+author: "Bolu / Josu"
+date: 2026-05-09
+format:
+  html:
+    code-fold: false
+    toc: true
+    toc-depth: 2
+    embed-resources: true
+    fig-width: 10
+    fig-height: 4.5
+jupyter: rcwa-venv
+execute:
+  cache: false
+  echo: true
+  warning: false
+---
+
+> **Decoupled report.** Reads the outputs of [bin/run_stage0a.py](../bin/run_stage0a.py)
+> from [runs/stage0a_NA_convergence/](runs/stage0a_NA_convergence/) — does **not** run
+> RCWA. Renders in seconds.
+>
+> If the output directory does not yet exist, run the script first:
+>
+> ```
+> python bin/run_stage0a.py --parallel 4
+> ```
+
+# 1. Load results
+
+```{python}
+#| label: load
+import sys, json
+from pathlib import Path
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Real LaTeX (Computer Modern), consistent with simulate.qmd / test8_plot.qmd
+plt.rcParams.update({
+    "text.usetex":     True,
+    "font.family":     "serif",
+    "font.size":       9,
+    "axes.titlesize":  10,
+    "axes.labelsize":  10,
+    "legend.fontsize": 8,
+    "text.latex.preamble": r"\usepackage{amsmath}\usepackage{amssymb}",
+})
+
+# sweep_runner gives us SimConfig.filename_stem() so we can locate every trace csv
+sys.path.insert(0, str(Path("./lib")))
+import sweep_runner as sr
+
+OUT       = Path("./sweep/runs/stage0a_NA_convergence")
+results_csv = OUT / "results.csv"
+decision_txt = OUT / "decision.txt"
+traces_dir   = OUT / "traces"
+
+assert results_csv.exists(), f"Run `python bin/run_stage0a.py` first — {results_csv} not found."
+df = pd.read_csv(results_csv).sort_values("harmonics").reset_index(drop=True)
+
+cols = ["harmonics", "Rdet_chi2_red", "Rdet_RMSE",
+        "Rdet_pearson_r", "R_chi2_red", "runtime_s"]
+df[cols].round(4)
+```
+
+# 2. Convergence plot
+
+```{python}
+#| label: figure
+
+# Centre-of-cube parameters (must match bin/run_stage0a.py)
+CENTRE = dict(
+    period_um        = 12.9,
+    A_um             = 1.5,
+    t_oxide_um       = 0.30,
+    oxide_dispersion = "HS_caliente",
+    theta_deg        = 30.0,
+    phi_sim_deg      = 89.0,
+    slices           = 50,
+    beta_deg         = 2.0,
+    wavelengths_um   = np.arange(3.0, 25.0, 0.25),
+)
+
+NA_grid = sorted(df["harmonics"].astype(int).tolist())
+NA_REF  = max(NA_grid)
+ref_stem = sr.SimConfig(harmonics=NA_REF, **CENTRE).filename_stem()
+df_ref   = pd.read_csv(traces_dir / ref_stem / f"AVG_{ref_stem}.csv")
+
+fig, ax = plt.subplots(1, 2, figsize=(10, 4.5), constrained_layout=True)
+
+cmap = plt.cm.viridis
+deltas = []
+for i, NA in enumerate(NA_grid):
+    stem = sr.SimConfig(harmonics=NA, **CENTRE).filename_stem()
+    avg = pd.read_csv(traces_dir / stem / f"AVG_{stem}.csv")
+    color = cmap(i / max(len(NA_grid) - 1, 1))
+    ax[0].plot(avg["x"], avg["R_det"], lw=1.3, color=color, label=rf"$\mathrm{{NA}}={NA}$")
+    deltas.append(float(np.max(np.abs(avg["R_det"] - df_ref["R_det"]))))
+
+ax[0].set_xlabel(r"$\lambda \;[\mu\mathrm{m}]$")
+ax[0].set_ylabel(r"$\langle R_{\mathrm{det}} \rangle_{\mathrm{sim}}\,(\beta=2^{\circ})$")
+ax[0].set_title(rf"$R_{{\mathrm{{det}}}}(\lambda)$ vs harmonics NA")
+ax[0].legend(loc="lower right", framealpha=0.85)
+ax[0].grid(True, alpha=0.4)
+
+ax[1].plot(NA_grid, deltas, "ko-", lw=1.5, ms=6)
+ax[1].axhline(0.01, color="red", ls="--", lw=1.2, label=r"$\sigma_{\mathrm{floor}}=0.01$")
+ax[1].set_yscale("log")
+ax[1].set_xlabel(r"$\mathrm{NA}$")
+ax[1].set_ylabel(rf"$\max_\lambda \, |R_{{\mathrm{{det}}}}(\mathrm{{NA}}) - R_{{\mathrm{{det}}}}({NA_REF})|$")
+ax[1].set_title(rf"Convergence vs $\mathrm{{NA}}_{{\max}} = {NA_REF}$")
+ax[1].legend()
+ax[1].grid(True, alpha=0.4, which="both")
+plt.show()
+```
+
+# 3. Decision
+
+```{python}
+#| label: decision
+if decision_txt.exists():
+    print(decision_txt.read_text())
+else:
+    print("decision.txt not found — re-run with: python bin/run_stage0a.py --resume")
+```
+
+# 4. What this locks in
+
+The chosen NA above feeds straight into [docs/SWEEP_PLAN.md](../../design/SWEEP_PLAN.md)
+"Stage 0a", and is the value every subsequent stage script and report uses.
+After this, the next blocker is the **φ-convention sanity check** (Stage 0b)
+— see [docs/DISTANCE.md §6](../../design/DISTANCE.md) and [docs/DISTANCE.md §9](../../design/DISTANCE.md).

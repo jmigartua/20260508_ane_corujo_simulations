@@ -1,0 +1,480 @@
+---
+title: "Representación — plotting helpers (Ane Corujo)"
+author: "Reproduced from `Representacion.ipynb`"
+date: 2026-05-08
+format:
+  html:
+    code-fold: false
+    toc: true
+    toc-depth: 3
+    embed-resources: true
+jupyter: rcwa-venv
+execute:
+  cache: false
+  echo: true
+  warning: true
+  error: true   # [BOLU] keep rendering even if a cell fails — most cells need data we don't have
+---
+
+> **Reproduction note.** This file is a 1-to-1 conversion of
+> [Representacion.ipynb](../20260508_messages/Representacion.ipynb).
+> **Most cells will fail** because they read CSVs Ane produced on her own
+> machine and never sent us:
+>
+> - `./datos/30_6.35_90_post_fix_completo.csv`
+> - `./datos/Capa_extra_020mm_30_6.35_89.csv`
+> - `./datos_020mm_89/LX_30_6.35.csv`, `LY_30_6.35.csv`
+> - `./datos_r_spec/LX_*_6.35.csv`, `LY_*_6.35.csv` (β-aperture sweep)
+> - `./datos_convergencia/LX_*_6.35.csv`, `LY_*_6.35.csv` (NA sweep)
+> - `./datos_oxide/LX_*_6.35.csv`, `LY_*_6.35.csv` (oxide-thickness sweep)
+>
+> And the *experimental* FTIR data path (`get_una`/`get_prom`) is hard-coded
+> to `C:\\Users\usuario\Desktop\TFM\Ref_especular\_ane_corujo` — only exists
+> on Ane's Windows laptop.
+>
+> **The two minimal changes I have made (both flagged with `# [BOLU]`):**
+>
+> 1. Replaced the Windows path with an `EXPERIMENTAL_DIR` env var that
+>    defaults to a non-existent local path, so we can substitute later if
+>    Ane sends us the experimental CSVs.
+> 2. Fixed the leaky-closure bug in `get_una` / `get_prom`: function bodies
+>    now use the `periodo` / `profundidad` arguments instead of reading the
+>    `period` / `prof` globals from the surrounding cell.
+>
+> Physics is unchanged. Plot logic is unchanged.
+
+# 0. Representación
+
+```{python}
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import os
+from pathlib import Path
+
+# [BOLU] make the experimental-data root configurable instead of hard-coded Windows
+EXPERIMENTAL_DIR = Path(os.environ.get(
+    "REF_ESPECULAR_DIR",
+    "../experimental_data_not_received_yet",  # placeholder — will not exist
+))
+
+
+def get_una(periodo, profundidad, theta, phi):
+    import os, glob
+    import pandas as pd
+    import numpy as np
+
+    # [BOLU] was: ruta = r'C:\\Users\usuario\Desktop\TFM\Ref_especular\_ane_corujo'
+    ruta = str(EXPERIMENTAL_DIR)
+    # [BOLU] was: muestra = f"{period}-{prof}"   ← used module-level globals
+    muestra = f"{periodo}-{profundidad}"
+    patron = os.path.join(ruta, f"{muestra}_{theta}_{phi}_*.csv")
+
+    archivos = sorted(glob.glob(patron))
+
+    if len(archivos) == 0:
+        print("No se encontraron archivos.")
+        return None
+
+    lambdas = []
+    refs = []
+
+    for archivo in archivos:
+        df = pd.read_csv(archivo)
+
+        wavenumber = df.iloc[:, 0].values
+        reflectividad = df.iloc[:, 1].values
+
+        # Correcciones
+        reflectividad = reflectividad / 100
+        #emisividad = 1 - reflectividad
+        lambda_ = 1e4 / wavenumber
+
+        # Ordenar
+        idx = np.argsort(lambda_)
+        lambda_ = lambda_[idx]
+        reflectividad = reflectividad[idx]
+
+        lambdas.append(lambda_)
+        refs.append(reflectividad)
+
+    return lambdas, refs
+
+
+#------------------------------------------------------------------------
+# PARA CONSEGUIR NO SÓLO LAS REPRESENTACIONES INDIVIDUALES, SINO EL PROMEDIO
+#------------------------------------------------------------------------
+def get_prom(periodo, profundidad, theta, phi):
+    import os, glob
+    import pandas as pd
+    import numpy as np
+
+    # [BOLU] same two fixes as in get_una
+    ruta = str(EXPERIMENTAL_DIR)
+    muestra = f"{periodo}-{profundidad}"
+    patron = os.path.join(ruta, f"{muestra}_{theta}_{phi}_*.csv")
+
+    archivos = sorted(glob.glob(patron))
+
+    if len(archivos) == 0:
+        print("No se encontraron archivos.")
+        return None
+
+    lambdas = []
+    refs = []
+
+    for archivo in archivos:
+        df = pd.read_csv(archivo)
+
+        wavenumber = df.iloc[:, 0].values
+        reflectividad = df.iloc[:, 1].values
+
+        # Correcciones
+        reflectividad = reflectividad / 100
+        #emisividad = 1 - reflectividad
+        lambda_ = 1e4 / wavenumber
+
+        # Ordenar
+        idx = np.argsort(lambda_)
+        lambda_ = lambda_[idx]
+        reflectividad = reflectividad[idx]
+
+        lambdas.append(lambda_)
+        refs.append(reflectividad)
+
+    refs_array = np.array(refs)
+
+    ref_mean = np.mean(refs_array, axis=0)
+    ref_std = np.std(refs_array, axis=0)
+
+    return lambdas[0], ref_mean, ref_std
+```
+
+# 1. Single-sample plot (raw experimental traces)
+
+```{python}
+period = 6
+prof = 1
+theta = 30
+phi = 90
+
+muestra = f"{period}-{prof}"
+result = get_una(period, prof, theta, phi)
+if result is None:
+    print("[skipped — experimental CSVs not available locally]")
+else:
+    lambdas, refs = result
+    plt.figure(figsize=(6,4.5))
+    for i, (l, r) in enumerate(zip(lambdas, refs)):
+        plt.plot(l, r, label=f"Exp {i+1}")
+    plt.xlabel("Longitud de onda (μm)")
+    plt.ylabel("Reflectividad")
+    plt.title(f"Muestra {muestra} | θ={theta}, φ={phi}")
+    plt.legend(); plt.grid(True); plt.tight_layout(); plt.show()
+```
+
+# 2. Comparison: experiment vs first-cut simulation
+
+```{python}
+# PRUEBA VALORES "BUENOS" - 6.35, 1.25 para SS 6-1
+
+period = 6
+prof = 1
+theta = 30
+phi = 0
+
+muestra = f"{period}-{prof}"
+result = get_una(period, prof, theta, phi)
+if result is None:
+    print("[skipped — experimental CSVs not available locally]")
+else:
+    lambdas, refs = result
+    plt.figure(figsize=(6,4.5))
+    for i, (l, r) in enumerate(zip(lambdas, refs)):
+        plt.plot(l, r, label=f"Exp {i+1}")
+
+    df1 = pd.read_csv(r'./datos/30_6.35_90_post_fix_completo.csv')
+    plt.plot(df1["x"], df1["R"], label="Simulación: R completa")
+
+    plt.xlabel("Longitud de onda (μm)")
+    plt.ylabel("Emisividad (1 - R)")
+    plt.title(f"Muestra {muestra} | θ={theta}, φ={phi} | Comparativa")
+    plt.xlim(0,25)
+    plt.legend(); plt.grid(True); plt.tight_layout(); plt.show()
+```
+
+# 3. Layer-composition study (`aire/capas/metal/aire` triptych)
+
+```{python}
+# COMPROBACIÓN: AÑADIR CAPA NO INFINITA DE METAL; AIRE/PATR./METAL/AIRE
+
+period = 6
+prof = 1
+theta = 30
+phi = 0
+
+muestra = f"{period}-{prof}"
+result = get_prom(period, prof, theta, phi)
+if result is None:
+    print("[skipped — experimental CSVs not available locally]")
+else:
+    lambdas0, ref_mean, ref_std = result
+
+    plt.figure(figsize=(6,4.5))
+
+    plt.plot(lambdas0, ref_mean, label="Promedio de valores experimentales")
+    plt.fill_between(lambdas0,
+                     (ref_mean - ref_std),
+                     (ref_mean + ref_std),
+                     alpha=0.2,
+                     label="Desviación estándar de val. exp.")
+
+    df1 = pd.read_csv(r'./datos/30_6.35_90_post_fix_completo.csv')
+    plt.plot(df1["x"], df1["R"], label="Simulación: aire, capas, metal")
+    df2 = pd.read_csv(r'./datos/Capa_extra_020mm_30_6.35_89.csv')
+    plt.plot(df2["x"], df2["R"], label="Simulación: aire, capas, metal, aire")
+    df3 = pd.read_csv(r'./datos/Capa_extra_solo_aire_PRUEBA_30_6.35.csv')
+    plt.plot(df3["x"], df3["R"], label="Simulación: aire, capas, aire")
+
+    plt.xlabel("Longitud de onda (μm)")
+    plt.ylabel("Reflectividad (R)")
+    plt.title(f"Muestra {muestra} | θ={theta}, φ={phi} | Composición de las capas")
+    plt.xlim(0,25); plt.legend(); plt.grid(True); plt.tight_layout(); plt.show()
+```
+
+# 4. Polarisation study (LX vs LY vs average)
+
+```{python}
+period = 6
+prof = 1
+theta = 30
+phi = 0
+
+muestra = f"{period}-{prof}"
+result = get_prom(period, prof, theta, phi)
+if result is None:
+    print("[skipped — experimental CSVs not available locally]")
+else:
+    lambdas0, ref_mean, ref_std = result
+
+    plt.figure(figsize=(6,4.5))
+
+    plt.plot(lambdas0, ref_mean, label="Promedio de valores experimentales")
+    plt.fill_between(lambdas0,
+                     (ref_mean - ref_std),
+                     (ref_mean + ref_std),
+                     alpha=0.2,
+                     label="Desviación estándar de val. exp.")
+
+    df1 = pd.read_csv(r'./datos_020mm_89/LX_30_6.35.csv')
+    plt.plot(df1["x"], df1["R"], label="Simulación: LX")
+    df2 = pd.read_csv(r'./datos_020mm_89/LY_30_6.35.csv')
+    plt.plot(df2["x"], df2["R"], label="Simulación: LY")
+
+    prom = (df1["R"]+df2["R"])*0.5
+    plt.plot(df2["x"], prom, label="Promedio")
+
+    plt.xlabel("Longitud de onda (μm)")
+    plt.ylabel("Reflectividad (R)")
+    plt.title("Estudio de la polarización \n" f"Muestra {muestra} | θ={theta}, φ={phi+90} | Comparativa")
+    plt.xlim(0,25); plt.legend(); plt.grid(True); plt.tight_layout(); plt.show()
+```
+
+# 5. Detector-aperture study (β sweep)
+
+```{python}
+period = 6
+prof = 1
+theta = 30
+phi = 0
+
+muestra = f"{period}-{prof}"
+result = get_prom(period, prof, theta, phi)
+if result is None:
+    print("[skipped — experimental CSVs not available locally]")
+else:
+    lambdas0, ref_mean, ref_std = result
+
+    plt.figure(figsize=(6,4.5))
+
+    plt.plot(lambdas0, ref_mean, label="Promedio de valores experimentales")
+    plt.fill_between(lambdas0,
+                     (ref_mean - ref_std),
+                     (ref_mean + ref_std),
+                     alpha=0.2,
+                     label="Desviación estándar de val. exp.")
+
+    # CURVAS INDIVIDUALES
+    df3 = pd.read_csv(r'./datos_020mm_89/LX_30_6.35.csv')
+    df4 = pd.read_csv(r'./datos_020mm_89/LY_30_6.35.csv')
+    df1 = pd.read_csv(r'./datos_r_spec/LX_0.2_6.35.csv')
+    df2 = pd.read_csv(r'./datos_r_spec/LY_0.2_6.35.csv')
+    df5 = pd.read_csv(r'./datos_r_spec/LX_10.0_6.35.csv')
+    df6 = pd.read_csv(r'./datos_r_spec/LY_10.0_6.35.csv')
+    df7 = pd.read_csv(r'./datos_r_spec/LX_20.0_6.35.csv')
+    df8 = pd.read_csv(r'./datos_r_spec/LY_20.0_6.35.csv')
+    df9 = pd.read_csv(r'./datos_r_spec/LX_30.0_6.35.csv')
+    df10 = pd.read_csv(r'./datos_r_spec/LY_30.0_6.35.csv')
+    df11 = pd.read_csv(r'./datos_r_spec/LX_50.0_6.35.csv')
+    df12 = pd.read_csv(r'./datos_r_spec/LY_50.0_6.35.csv')
+
+    prom2 = (df3["R"]+df4["R"])*0.5
+    plt.plot(df4["x"], prom2, label="Promedio de valores totales")
+    prom = (df1["R_det"]+df2["R_det"])*0.5
+    plt.plot(df2["x"], prom, label="Promedio de valores especulares")
+    prom4 = (df7["R_det"]+df8["R_det"])*0.5
+    plt.plot(df7["x"], prom4, label="Promedio de valores det (beta=20)")
+    prom5 = (df9["R_det"]+df10["R_det"])*0.5
+    plt.plot(df9["x"], prom5, label="Promedio de valores det (beta=30)")
+    prom6 = (df11["R_det"]+df12["R_det"])*0.5
+    plt.plot(df11["x"], prom6, label="Promedio de valores det (beta=50)")
+
+    plt.xlabel("Longitud de onda (μm)")
+    plt.ylabel("Reflectividad (R)")
+    plt.title("Estudio de la apertura del detector (ángulo beta) \n" f"Muestra {muestra} | θ={theta}, φ={phi+90} | Comparativa")
+    plt.xlim(0,25); plt.legend(); plt.grid(True); plt.tight_layout(); plt.show()
+```
+
+# 6. Convergence study (NA sweep)
+
+```{python}
+period = 6
+prof = 1
+theta = 30
+phi = 0
+
+muestra = f"{period}-{prof}"
+result = get_prom(period, prof, theta, phi)
+if result is None:
+    print("[skipped — experimental CSVs not available locally]")
+else:
+    lambdas0, ref_mean, ref_std = result
+
+    plt.figure(figsize=(6,4.5))
+
+    plt.plot(lambdas0, ref_mean, label="Promedio de valores experimentales")
+    plt.fill_between(lambdas0,
+                     (ref_mean - ref_std),
+                     (ref_mean + ref_std),
+                     alpha=0.2,
+                     label="Desviación estándar de val. exp.")
+
+    con5 = pd.read_csv(r'./datos_convergencia/LX_15_6.35.csv')
+    con6 = pd.read_csv(r'./datos_convergencia/LY_15_6.35.csv')
+    con11 = pd.read_csv(r'./datos_convergencia/LX_27_6.35.csv')
+    con12 = pd.read_csv(r'./datos_convergencia/LY_27_6.35.csv')
+    con13 = pd.read_csv(r'./datos_convergencia/LX_31_6.35.csv')
+    con14 = pd.read_csv(r'./datos_convergencia/LY_31_6.35.csv')
+    con15 = pd.read_csv(r'./datos_convergencia/LX_35_6.35.csv')
+    con16 = pd.read_csv(r'./datos_convergencia/LY_35_6.35.csv')
+
+    prm2 = (con5["R_det"]+con6["R_det"])*0.5
+    plt.plot(con5["x"], prm2, label="NA = 15")
+    prm5 = (con11["R_det"]+con12["R_det"])*0.5
+    plt.plot(con11["x"], prm5, label="NA = 27")
+    prm6 = (con13["R_det"]+con14["R_det"])*0.5
+    plt.plot(con13["x"], prm6, label="NA = 31")
+    prm7 = (con15["R_det"]+con16["R_det"])*0.5
+    plt.plot(con15["x"], prm7, label="NA = 35")
+
+    plt.xlabel("Longitud de onda (μm)")
+    plt.ylabel("Reflectividad (R)")
+    plt.title("Estudio preliminar de convergencia \n" f"Muestra {muestra} | θ={theta}, φ={phi+90} | Comparativa")
+    plt.xlim(0,25); plt.legend(); plt.grid(True); plt.tight_layout(); plt.show()
+```
+
+# 7. Oxide-thickness study
+
+```{python}
+period = 6
+prof = 1
+theta = 30
+phi = 0
+
+muestra = f"{period}-{prof}"
+result = get_prom(period, prof, theta, phi)
+if result is None:
+    print("[skipped — experimental CSVs not available locally]")
+else:
+    lambdas0, ref_mean, ref_std = result
+
+    plt.figure(figsize=(6,4.5))
+
+    plt.plot(lambdas0, ref_mean, label="Promedio de valores experimentales")
+    plt.fill_between(lambdas0,
+                     (ref_mean - ref_std),
+                     (ref_mean + ref_std),
+                     alpha=0.2,
+                     label="Desviación estándar de val. exp.")
+
+    ox3 = pd.read_csv(r'./datos_oxide/LX_0.05_6.35.csv')
+    ox4 = pd.read_csv(r'./datos_oxide/LY_0.05_6.35.csv')
+    ox5 = pd.read_csv(r'./datos_oxide/LX_0.2_6.35.csv')
+    ox6 = pd.read_csv(r'./datos_oxide/LY_0.2_6.35.csv')
+    ox7 = pd.read_csv(r'./datos_oxide/LX_0.5_6.35.csv')
+    ox8 = pd.read_csv(r'./datos_oxide/LY_0.5_6.35.csv')
+    ox9 = pd.read_csv(r'./datos_oxide/LX_0.3_6.35.csv')
+    ox10 = pd.read_csv(r'./datos_oxide/LY_0.3_6.35.csv')
+
+    prox = (ox3["R_det"]+ox4["R_det"])*0.5
+    plt.plot(ox4["x"], prox, label="d = 0.05 micras")
+    prox2 = (ox5["R_det"]+ox6["R_det"])*0.5
+    plt.plot(ox5["x"], prox2, label="d = 0.20 micras")
+    prox4 = (ox9["R_det"]+ox10["R_det"])*0.5
+    plt.plot(ox9["x"], prox4, label="d = 0.30 micras")
+    prox3 = (ox7["R_det"]+ox8["R_det"])*0.5
+    plt.plot(ox7["x"], prox3, label="d = 0.50 micras")
+
+    plt.xlabel("Longitud de onda (μm)")
+    plt.ylabel("Reflectividad (R)")
+    plt.title("Estudio del grosor de la capa de óxido \n" f"Muestra {muestra} | θ={theta}, φ={phi+90} | Comparativa")
+    plt.xlim(0,25); plt.legend(); plt.grid(True); plt.tight_layout(); plt.show()
+```
+
+# 8. Final convergence check at d = 0.30 µm
+
+```{python}
+period = 6
+prof = 1
+theta = 30
+phi = 0
+
+muestra = f"{period}-{prof}"
+result = get_prom(period, prof, theta, phi)
+if result is None:
+    print("[skipped — experimental CSVs not available locally]")
+else:
+    lambdas0, ref_mean, ref_std = result
+
+    plt.figure(figsize=(6,4.5))
+
+    plt.plot(lambdas0, ref_mean, label="Promedio de valores experimentales")
+    plt.fill_between(lambdas0,
+                     (ref_mean - ref_std),
+                     (ref_mean + ref_std),
+                     alpha=0.2,
+                     label="Desviación estándar de val. exp.")
+
+    ox9 = pd.read_csv(r'./datos_oxide/LX_0.3_6.35.csv')
+    ox10 = pd.read_csv(r'./datos_oxide/LY_0.3_6.35.csv')
+    ox11 = pd.read_csv(r'./datos_oxide/LX_35_0.3_6.35.csv')
+    ox12 = pd.read_csv(r'./datos_oxide/LY_35_0.3_6.35.csv')
+    ox13 = pd.read_csv(r'./datos_oxide/LX_39_0.3_6.35.csv')
+    ox14 = pd.read_csv(r'./datos_oxide/LY_39_0.3_6.35.csv')
+    ox15 = pd.read_csv(r'./datos_oxide/LX_51_0.3_6.35.csv')
+    ox16 = pd.read_csv(r'./datos_oxide/LY_51_0.3_6.35.csv')
+
+    prox4 = (ox9["R_det"]+ox10["R_det"])*0.5
+    plt.plot(ox9["x"], prox4, label="d = 0.30 micras, NA = 31")
+    prox5 = (ox11["R_det"]+ox12["R_det"])*0.5
+    plt.plot(ox11["x"], prox5, label="d = 0.30 micras, NA = 35")
+    prox6 = (ox13["R_det"]+ox14["R_det"])*0.5
+    plt.plot(ox13["x"], prox6, label="d = 0.30 micras, NA = 39")
+    prox7 = (ox15["R_det"]+ox16["R_det"])*0.5
+    plt.plot(ox15["x"], prox7, label="d = 0.30 micras, NA = 51")
+
+    plt.xlabel("Longitud de onda (μm)")
+    plt.ylabel("Reflectividad (R)")
+    plt.title("Estudio final de convergencia \n" f"Muestra {muestra} | θ={theta}, φ={phi+90} | Comparativa")
+    plt.xlim(0,25); plt.legend(); plt.grid(True); plt.tight_layout(); plt.show()
+```

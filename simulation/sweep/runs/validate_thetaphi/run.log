@@ -1,0 +1,37 @@
+2026-05-09 17:17:44,769  INFO     ======================================================================
+2026-05-09 17:17:44,770  INFO     Validate (θ, φ) — locked Stage-1 winner + double-sin profile
+2026-05-09 17:17:44,770  INFO       θ grid       = [30.0, 45.0, 60.0]
+2026-05-09 17:17:44,770  INFO       φ_exp grid   = [0.0, 22.5, 45.0, 67.5, 90.0]
+2026-05-09 17:17:44,770  INFO       total configs = 15
+2026-05-09 17:17:44,770  INFO       parallel     = 1
+2026-05-09 17:17:44,770  INFO       output       = /Users/User/Desktop/2026/20260508_ane_corujo_simulations/simulation/sweep/runs/validate_thetaphi
+2026-05-09 17:17:44,770  INFO       locked params: t_oxide=0.9µm, β=2.0°, oxide=HS_caliente, NA=39, A2=0.3µm, φ2=1.5708 rad
+2026-05-09 17:17:44,770  INFO       φ_sim mapping: φ_exp=0°→89°, 22.5°→67.5°, 45°→45°, 67.5°→22.5°, 90°→1°
+2026-05-09 17:17:44,770  INFO     DRY RUN — would compute 15 configs
+2026-05-09 17:17:53,964  INFO     ======================================================================
+2026-05-09 17:17:53,964  INFO     Validate (θ, φ) — locked Stage-1 winner + double-sin profile
+2026-05-09 17:17:53,964  INFO       θ grid       = [30.0, 45.0, 60.0]
+2026-05-09 17:17:53,964  INFO       φ_exp grid   = [0.0, 22.5, 45.0, 67.5, 90.0]
+2026-05-09 17:17:53,964  INFO       total configs = 15
+2026-05-09 17:17:53,965  INFO       parallel     = 4
+2026-05-09 17:17:53,965  INFO       output       = /Users/User/Desktop/2026/20260508_ane_corujo_simulations/simulation/sweep/runs/validate_thetaphi
+2026-05-09 17:17:53,965  INFO       locked params: t_oxide=0.9µm, β=2.0°, oxide=HS_caliente, NA=39, A2=0.3µm, φ2=1.5708 rad
+2026-05-09 17:17:53,965  INFO       φ_sim mapping: φ_exp=0°→89°, 22.5°→67.5°, 45°→45°, 67.5°→22.5°, 90°→1°
+2026-05-09 17:17:53,965  INFO     Spawning 4 workers …
+2026-05-09 17:27:56,361  INFO       [ 1/15] (θ=30, φ_exp=67.5): χ²_red(R_det)=  88.52  RMSE=0.0941  pearson=0.9525
+2026-05-09 17:27:56,397  INFO       [ 2/15] (θ=30, φ_exp=22.5): χ²_red(R_det)=  82.96  RMSE=0.0931  pearson=0.9651
+2026-05-09 17:27:56,989  INFO       [ 3/15] (θ=30, φ_exp=0): χ²_red(R_det)= 104.18  RMSE=0.1021  pearson=0.9826
+2026-05-09 17:27:59,797  INFO       [ 4/15] (θ=30, φ_exp=45): χ²_red(R_det)=  75.49  RMSE=0.0889  pearson=0.9652
+2026-05-09 17:39:21,940  INFO       [ 5/15] (θ=30, φ_exp=90): χ²_red(R_det)=  86.66  RMSE=0.0931  pearson=0.9474
+2026-05-09 17:39:25,302  INFO       [ 6/15] (θ=45, φ_exp=0): χ²_red(R_det)= 262.74  RMSE=0.1621  pearson=0.9860
+2026-05-09 17:39:27,570  INFO       [ 7/15] (θ=45, φ_exp=45): χ²_red(R_det)= 138.54  RMSE=0.1330  pearson=0.9509
+2026-05-09 17:39:27,903  INFO       [ 8/15] (θ=45, φ_exp=22.5): χ²_red(R_det)= 231.91  RMSE=0.1537  pearson=0.9642
+2026-05-09 17:49:49,280  INFO       [ 9/15] (θ=45, φ_exp=67.5): χ²_red(R_det)= 142.01  RMSE=0.1192  pearson=0.9354
+2026-05-09 17:49:50,946  INFO       [10/15] (θ=45, φ_exp=90): χ²_red(R_det)=  96.21  RMSE=0.1196  pearson=0.9289
+2026-05-09 17:49:54,973  INFO       [11/15] (θ=60, φ_exp=0): χ²_red(R_det)=1157.65  RMSE=0.3402  pearson=0.9420
+2026-05-09 17:49:58,102  INFO       [12/15] (θ=60, φ_exp=22.5): χ²_red(R_det)=1070.99  RMSE=0.3273  pearson=0.8927
+2026-05-09 17:58:34,033  INFO       [13/15] (θ=60, φ_exp=45): χ²_red(R_det)= 568.24  RMSE=0.2787  pearson=0.8581
+2026-05-09 17:58:34,039  INFO       [14/15] (θ=60, φ_exp=67.5): χ²_red(R_det)= 422.99  RMSE=0.2331  pearson=0.8564
+2026-05-09 17:58:35,097  INFO       [15/15] (θ=60, φ_exp=90): χ²_red(R_det)= 603.28  RMSE=0.2456  pearson=0.8570
+2026-05-09 17:58:36,103  INFO     Wall time: 2442.1s (40.7 min)
+2026-05-09 17:58:36,131  INFO     Decision file: /Users/User/Desktop/2026/20260508_ane_corujo_simulations/simulation/sweep/runs/validate_thetaphi/decision.txt

@@ -1,0 +1,224 @@
+---
+title: "(θ, φ) validation — locked Stage-1 winner + double-sin profile"
+subtitle: "Does the locked configuration generalise across the full angular matrix for SS\\_12-3?"
+author: "Bolu / Josu"
+date: 2026-05-09
+format:
+  html:
+    code-fold: false
+    toc: true
+    toc-depth: 2
+    embed-resources: true
+    fig-width: 12
+    fig-height: 5
+jupyter: rcwa-venv
+execute:
+  cache: false
+  echo: true
+  warning: false
+---
+
+> **Decoupled report.** Reads the outputs of [bin/run_validate_thetaphi.py](../bin/run_validate_thetaphi.py)
+> from [runs/validate_thetaphi/](../runs/validate_thetaphi/). 15 configurations
+> at the same locked parameters (NA = 39, t_oxide = 0.9 µm, β = 2°,
+> oxide = HS_caliente, A₂ = 0.30 µm, φ₂ = π/2), varying only (θ, φ_exp).
+>
+> If χ²_red is roughly homogeneous across the (θ, φ) cells, the locked
+> universal Tier-1 result generalises. If one cell dominates the χ², we
+> have a structural angular issue.
+
+# 1. Load results
+
+```{python}
+#| label: load
+import sys
+from pathlib import Path
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+sys.path.insert(0, str(Path("./lib")))
+import sweep_runner as sr
+import plot_helpers
+plot_helpers._ensure_latex_rcparams()
+
+OUT          = Path("./sweep/runs/validate_thetaphi")
+results_csv  = OUT / "results.csv"
+decision_txt = OUT / "decision.txt"
+traces_dir   = OUT / "traces"
+
+assert results_csv.exists(), f"Run `python sweep/bin/run_validate_thetaphi.py` first."
+df = pd.read_csv(results_csv).sort_values(["theta_exp_deg", "phi_exp_deg"]).reset_index(drop=True)
+
+print(f"{len(df)} cells loaded")
+df[["theta_exp_deg", "phi_exp_deg", "phi_sim_deg",
+    "Rdet_chi2_red", "Rdet_RMSE", "Rdet_pearson_r"]].round(3)
+```
+
+# 2. χ²_red over the (θ, φ) grid
+
+```{python}
+#| label: heatmap
+fig, ax = plt.subplots(1, 2, figsize=(12, 4.5), constrained_layout=True)
+
+# χ² heatmap (linear scale — they may all be O(100), so linear is more legible than log)
+piv = df.pivot(index="theta_exp_deg", columns="phi_exp_deg", values="Rdet_chi2_red")
+im = ax[0].imshow(piv.values, aspect="auto", origin="lower", cmap="viridis_r")
+ax[0].set_xticks(range(len(piv.columns))); ax[0].set_xticklabels([f"{p:g}°" for p in piv.columns])
+ax[0].set_yticks(range(len(piv.index)));   ax[0].set_yticklabels([f"{t:g}°" for t in piv.index])
+ax[0].set_xlabel(r"$\varphi_{\mathrm{exp}}$"); ax[0].set_ylabel(r"$\theta$")
+ax[0].set_title(r"$\chi^2_{\mathrm{red}}(R_{\mathrm{det}})$ across $(\theta, \varphi_{\mathrm{exp}})$")
+plt.colorbar(im, ax=ax[0], label=r"$\chi^2_{\mathrm{red}}$")
+# annotate cells
+for i, t in enumerate(piv.index):
+    for j, p in enumerate(piv.columns):
+        v = piv.values[i, j]
+        ax[0].text(j, i, f"{v:.0f}", ha="center", va="center",
+                   color="white" if v > piv.values.mean() else "black", fontsize=9)
+
+# Pearson r heatmap
+piv_r = df.pivot(index="theta_exp_deg", columns="phi_exp_deg", values="Rdet_pearson_r")
+im2 = ax[1].imshow(piv_r.values, aspect="auto", origin="lower", cmap="viridis", vmin=0.5, vmax=1.0)
+ax[1].set_xticks(range(len(piv_r.columns))); ax[1].set_xticklabels([f"{p:g}°" for p in piv_r.columns])
+ax[1].set_yticks(range(len(piv_r.index)));   ax[1].set_yticklabels([f"{t:g}°" for t in piv_r.index])
+ax[1].set_xlabel(r"$\varphi_{\mathrm{exp}}$"); ax[1].set_ylabel(r"$\theta$")
+ax[1].set_title("Pearson r")
+plt.colorbar(im2, ax=ax[1], label="r")
+for i, t in enumerate(piv_r.index):
+    for j, p in enumerate(piv_r.columns):
+        v = piv_r.values[i, j]
+        ax[1].text(j, i, f"{v:.2f}", ha="center", va="center",
+                   color="white" if v < 0.85 else "black", fontsize=9)
+
+plt.show()
+```
+
+# 3. Aggregate statistics
+
+```{python}
+#| label: stats
+print(f"χ²_red — sum    : {df['Rdet_chi2_red'].sum():8.2f}")
+print(f"        — mean   : {df['Rdet_chi2_red'].mean():8.2f}")
+print(f"        — median : {df['Rdet_chi2_red'].median():8.2f}")
+print(f"        — min    : {df['Rdet_chi2_red'].min():8.2f}  (best cell)")
+print(f"        — max    : {df['Rdet_chi2_red'].max():8.2f}  (worst cell)")
+print(f"        — max/min: {df['Rdet_chi2_red'].max() / df['Rdet_chi2_red'].min():.2f}")
+print()
+print("Best 3 cells:")
+print(df.nsmallest(3, "Rdet_chi2_red")[
+    ["theta_exp_deg", "phi_exp_deg", "Rdet_chi2_red", "Rdet_RMSE", "Rdet_pearson_r"]
+].round(3).to_string(index=False))
+print()
+print("Worst 3 cells:")
+print(df.nlargest(3, "Rdet_chi2_red")[
+    ["theta_exp_deg", "phi_exp_deg", "Rdet_chi2_red", "Rdet_RMSE", "Rdet_pearson_r"]
+].round(3).to_string(index=False))
+```
+
+# 4. Best cell — full comparison plot
+
+```{python}
+#| label: best-cell
+
+best = df.loc[df["Rdet_chi2_red"].idxmin()]
+phi_sim_best = sr.SimConfig(
+    period_um=12.9, A_um=1.5, t_oxide_um=0.9, oxide_dispersion="HS_caliente",
+    theta_deg=float(best["theta_exp_deg"]),
+    phi_sim_deg=float(best["phi_sim_deg"]),
+    harmonics=39, slices=50, beta_deg=2.0,
+    A2_um=0.30, phi2_rad=float(np.pi/2),
+    wavelengths_um=np.arange(3.0, 25.0, 0.25),
+).filename_stem()
+best_avg_path = traces_dir / phi_sim_best / f"AVG_{phi_sim_best}.csv"
+
+EXP_DIR = Path("../data/experimental")
+phi_str_map = {0: "0", 22.5: "22-5", 45: "45", 67.5: "67-5", 90: "90"}
+phi_str = phi_str_map[float(best["phi_exp_deg"])]
+exp_paths = sorted(EXP_DIR.glob(f"12-3_{int(best['theta_exp_deg'])}_{phi_str}_*.CSV"))
+
+fig, ax = plot_helpers.plot_comparison_with_residual(
+    sim_avg_path  = best_avg_path,
+    exp_paths     = exp_paths,
+    observable    = "R_det",
+    sample_label  = "12-3",
+    theta_exp_deg = float(best["theta_exp_deg"]),
+    phi_exp_deg   = float(best["phi_exp_deg"]),
+    beta_deg      = 2.0,
+    figsize       = (8, 7),
+    title         = (rf"Best cell: $\theta={best['theta_exp_deg']:g}^{{\circ}}$, "
+                     rf"$\varphi_{{\mathrm{{exp}}}}={best['phi_exp_deg']:g}^{{\circ}}$, "
+                     rf"$\chi^2_{{\mathrm{{red}}}}={best['Rdet_chi2_red']:.1f}$"),
+)
+plt.show()
+```
+
+# 5. Worst cell — full comparison plot
+
+```{python}
+#| label: worst-cell
+
+worst = df.loc[df["Rdet_chi2_red"].idxmax()]
+phi_sim_worst = sr.SimConfig(
+    period_um=12.9, A_um=1.5, t_oxide_um=0.9, oxide_dispersion="HS_caliente",
+    theta_deg=float(worst["theta_exp_deg"]),
+    phi_sim_deg=float(worst["phi_sim_deg"]),
+    harmonics=39, slices=50, beta_deg=2.0,
+    A2_um=0.30, phi2_rad=float(np.pi/2),
+    wavelengths_um=np.arange(3.0, 25.0, 0.25),
+).filename_stem()
+worst_avg_path = traces_dir / phi_sim_worst / f"AVG_{phi_sim_worst}.csv"
+
+phi_str = phi_str_map[float(worst["phi_exp_deg"])]
+exp_paths_w = sorted(EXP_DIR.glob(f"12-3_{int(worst['theta_exp_deg'])}_{phi_str}_*.CSV"))
+
+fig, ax = plot_helpers.plot_comparison_with_residual(
+    sim_avg_path  = worst_avg_path,
+    exp_paths     = exp_paths_w,
+    observable    = "R_det",
+    sample_label  = "12-3",
+    theta_exp_deg = float(worst["theta_exp_deg"]),
+    phi_exp_deg   = float(worst["phi_exp_deg"]),
+    beta_deg      = 2.0,
+    figsize       = (8, 7),
+    title         = (rf"Worst cell: $\theta={worst['theta_exp_deg']:g}^{{\circ}}$, "
+                     rf"$\varphi_{{\mathrm{{exp}}}}={worst['phi_exp_deg']:g}^{{\circ}}$, "
+                     rf"$\chi^2_{{\mathrm{{red}}}}={worst['Rdet_chi2_red']:.1f}$"),
+)
+plt.show()
+```
+
+# 6. Decision text
+
+```{python}
+#| label: decision
+if decision_txt.exists():
+    print(decision_txt.read_text())
+else:
+    print("decision.txt not found.")
+```
+
+# 7. Verdict
+
+```{python}
+#| label: verdict
+ratio = df["Rdet_chi2_red"].max() / df["Rdet_chi2_red"].min()
+
+print(f"χ²_red max/min ratio = {ratio:.2f}")
+if ratio < 2.0:
+    print("\n✓ Roughly homogeneous across (θ, φ_exp). The locked configuration generalises.")
+    print("  The remaining ~100 χ²_red is the same structural residual seen at (30°, 0°),")
+    print("  pointing to the Cr2O3 phonon model. Stage 2 / 3 can proceed without a fundamental")
+    print("  angular structural fix.")
+elif ratio < 5.0:
+    print("\n◌ Moderate angular variation. The locked configuration is approximately right")
+    print("  but not perfectly uniform. Worth examining the worst cell's residual shape")
+    print("  before committing to materials work.")
+else:
+    print("\n✗ Strong angular dependence — one or more (θ, φ) cells fit dramatically worse.")
+    print("  This is structural. Possible diagnoses:")
+    print("    - φ_sim mapping `90° − φ_exp` is wrong for non-zero φ_exp")
+    print("    - Geometric model (sinusoidal grating) is missing 2D structure visible at")
+    print("      certain incidence angles")
+    print("    - The β = 2° detector aperture is angle-dependent in the physical setup")
+    print("  Resolve before attempting Cr2O3 phonon work.")
+```

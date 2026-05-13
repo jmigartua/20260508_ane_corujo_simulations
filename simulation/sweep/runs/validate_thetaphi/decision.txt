@@ -1,0 +1,14 @@
+# Validate (θ, φ) — sum / mean / range over 15 configs
+chi2_red sum    = 5132.39
+chi2_red mean   = 342.16
+chi2_red median = 142.01
+chi2_red min    = 75.49
+chi2_red max    = 1157.65
+chi2_red ratio max/min = 15.33
+
+Per-cell chi2_red(R_det):
+phi_exp_deg      0.0     22.5   45.0   67.5   90.0
+theta_exp_deg                                     
+30.0            104.2    83.0   75.5   88.5   86.7
+45.0            262.7   231.9  138.5  142.0   96.2
+60.0           1157.7  1071.0  568.2  423.0  603.3

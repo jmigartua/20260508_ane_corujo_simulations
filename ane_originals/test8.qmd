@@ -1,0 +1,408 @@
+---
+title: "Test8 — Programa principal (Ane Corujo)"
+author: "Reproduced verbatim from `Test8_full (1).ipynb`"
+date: 2026-05-08
+format:
+  html:
+    code-fold: false
+    toc: true
+    toc-depth: 3
+    embed-resources: true
+jupyter: rcwa-venv
+execute:
+  cache: false
+  echo: true
+  warning: true
+---
+
+> ⚠️ **Status.** This file is the *historical reference* — Ane's notebook
+> reproduced verbatim. For active work and configuration-space exploration,
+> use **[simulate.qmd](../simulate.qmd)** (the same physics, refactored into
+> [lib/sweep_runner.py](../lib/sweep_runner.py) so every cell of every
+> sweep stage shares one codepath). Plot generation is in
+> [test8_plot.qmd](../test8_plot.qmd).
+
+> **Reproduction note.** This `.qmd` is a 1-to-1 conversion of Ane's
+> [Test8_full (1).ipynb](../../20260508_messages/Test8_full%20(1).ipynb).
+> Each notebook cell is a `{python}` chunk below in the same order, with the
+> same code. Physics, parameters, and library calls are unchanged. The only
+> deltas — all flagged with `# [BOLU]` — are the minimum needed to make the
+> notebook actually run on this machine:
+>
+> 1. The notebook reads `'./SS_letter.csv'` but the data file is named
+>    `SS_letter (1).csv`. We work around this with a same-named symlink in
+>    [./SS_letter.csv](../SS_letter.csv) → `../20260508_messages/SS_letter (1).csv`.
+>    The simulation code itself is unchanged.
+> 2. The notebook writes outputs into `./runs/adhoc/`. We `mkdir`-ensured that
+>    folder (already done outside the notebook).
+>
+> The patched `solver.py` / `harmonics.py` Ane sent (with `theta_orders` and
+> `get_detected_reflectance`) are installed in
+> `.venv/lib/python3.12/site-packages/rcwa/`, replacing the upstream files.
+> Originals saved as `solver.py.upstream.bak` / `harmonics.py.upstream.bak`.
+
+# 0. Programa Edmund (versión discretización de Jon, sinusoide simple)
+
+1. Añadir capa de SS (0.2 mm)
+2. Polarización de la fuente: estudio, comparación y promedio (LX y LY)
+3. Incorporar cálculo de la reflectancia especular usando beta variable (beta=10)
+4. Estudio de la convergencia: a partir de 27 armónicos; pero mejor usar 31
+5. Cambiar discretización: añadir capa de óxido
+6. Probar para diferentes muestras
+
+# 1. `datos_cromo` — Cr₂O₃ dispersion model from Al-Kuhaili & Durrani (2007)
+
+```{python}
+# PENDIENTE DE ENCONTRAR MODELOS MEJORES - MEJORAR EL AJUSTE
+
+import numpy as np
+import pandas as pd
+
+def datos_cromo(a0, a1, a2, E0, Ed, lambda_min, lambda_max, pasos=200):
+    # Constantes
+    h = 6.626e-34      # J·s
+    c = 3e8            # m/s
+    q = 1.602e-19      # C (para pasar a eV)
+
+    # Rango de longitudes de onda en micras
+    lambdas = np.linspace(lambda_min, lambda_max, pasos)
+
+    # Convertir λ a metros
+    lambdas_m = lambdas * 1e-6
+
+    # Energía en eV
+    E = (h * c) / (q * lambdas_m)
+
+    # Modelos
+    n = np.sqrt(1 + (E0 * Ed) / (E0**2 - E**2))
+    k = a0 + a1 / lambdas + a2 / (lambdas**2)
+
+    # Crear dataframe
+    df = pd.DataFrame({
+        "lambda_um": lambdas,
+        "n": n,
+        "k": k
+    })
+
+    # Guardar CSV
+    df.to_csv("calientes_cromo.csv", index=False)
+
+    return df
+```
+
+# 2. Generate Cr₂O₃ (n, k) for the "caliente" (HS) film
+
+```{python}
+# DOS OPCIONES: CASO "FRÍO" Y CASO "CALIENTE"
+
+# Datos para el caso caliente (ver paper)
+df_cromo = datos_cromo(
+    a0=0.010,
+    a1=-0.04121,
+    a2=0.041509,
+    E0=5.13,
+    Ed=19.2,
+    lambda_min=3,
+    lambda_max=25
+)
+df_cromo.head()
+```
+
+# 3. `discretize_rugosity_with_oxide`
+
+```{python}
+from rcwa import Source, Layer, LayerStack, Crystal, Solver, RectangularGrating
+from rcwa.shorthand import complexArray
+import numpy as np
+from matplotlib import pyplot as plt
+import pandas as pd
+
+#-------------------------------------------
+
+def discretize_rugosity_with_oxide(df, material_perm=6.0, oxide_perm=2.0, env_perm=1.0, slices=50, oxide_thickness=0.05):
+    """
+    This function takes a dataframe with two columns, 'x' and 'y', and N rows
+    which represents the profile (y) measured along x,
+    the permitivitty value of the material and the number of slices in which the
+    profile will be discretized, and returns a matrix of size (slices, N)
+    with the permitivity values: material_permitivity for the slices under the profile
+    and environment_permitivity for the slices above the profile.
+    """
+    # Esta función se ha modificado para tener en cuenta una capa de óxido
+    # de espesor aproximado de 50 nm (0.05 micras), el equivalente a dos capas
+    # con los parámetros actuales de la discretización.
+
+    min_y = np.min(df['y'])
+    max_y = np.max(df['y'])
+    total_height = max_y - min_y
+
+    # Altura real de cada slice en micras
+    dz = total_height / slices
+    # Cuántos slices de grosor representa el óxido (mínimo 1 si el espesor > 0)
+    oxide_slices = int(np.ceil(oxide_thickness / dz))
+
+    df_norm = (df['y'] - min_y) / total_height
+    permitivity_matrix = np.full((slices, len(df)), env_perm, dtype=complex)
+
+    for i in range(1, slices + 1):
+        z_level = i / slices
+        # Puntos que son puramente metal
+        metal_idx = df.index[df_norm > z_level].tolist()
+        permitivity_matrix[-i][metal_idx] = material_perm
+
+        # Puntos de óxido: están "en el borde" superior del metal
+        # Buscamos la zona de transición entre z_level y z_level + oxide_thickness
+        oxide_threshold = (z_level) + (oxide_thickness / total_height)
+        oxide_idx = df.index[(df_norm > z_level) & (df_norm <= oxide_threshold)].tolist()
+
+        # Aplicamos el óxido sobre la capa actual si corresponde al borde
+        permitivity_matrix[-i][oxide_idx] = oxide_perm
+
+    return permitivity_matrix
+```
+
+# 4. Load SS permittivity and Cr₂O₃ (n, k); build splines
+
+```{python}
+# [BOLU] Notebook reads './SS_letter.csv'. We provide that path as a symlink to
+# '../20260508_messages/SS_letter (1).csv'. Code below is untouched.
+permittivity_raw_data = pd.read_csv('./SS_letter.csv', sep=',')
+permittivity_raw_data['lambda'] = 10000/permittivity_raw_data['wavenumber'].values
+permittivity_raw_data = permittivity_raw_data.sort_values(by=['lambda'])
+
+oxide_raw_data = pd.read_csv('./calientes_cromo.csv', sep=',')
+#oxide_raw_data = oxide_raw_data.sort_value(by=['lambda_um'])
+
+from scipy.interpolate import UnivariateSpline
+
+permittivity_1 = UnivariateSpline(permittivity_raw_data['lambda'].values, permittivity_raw_data['n'].values)
+permittivity_2 = UnivariateSpline(permittivity_raw_data['lambda'].values, permittivity_raw_data['k'].values)
+
+oxide_n = UnivariateSpline(oxide_raw_data['lambda_um'].values, oxide_raw_data['n'].values)
+oxide_k = UnivariateSpline(oxide_raw_data['lambda_um'].values, oxide_raw_data['k'].values)
+```
+
+# 5. Main simulation — sinusoidal grating, 1 angle, **both** polarisations, λ ∈ [3, 25] µm
+
+> **[BOLU] Three coordinated changes vs. the original notebook cell:**
+>
+> 1. **Wavelength range extended:** `np.arange(3, 18, 0.25)` → `np.arange(3, 25, 0.25)` (Ane's request — the SS file and the cromo file both cover up to 25 µm, so we are not extrapolating any data).
+> 2. **Polarisation loop:** the original sets `pTEM` once (LX commented out, LY active) and the LX run was done by hand on a separate execution. We now loop over both LX and LY in one pass, save each as its own CSV, **and save the polarisation-averaged result `AVG = (LX + LY) / 2`** to a third CSV — the quantity that should actually be compared with the experimental FTIR (which is unpolarised).
+> 3. **No physics change.** Same `harmonics = 35`, `slices = 50`, `t_oxide = 0.90 µm`, `period = 12.90`, `phi = 89°`, substrate stack, and `beta_apertura = 2°`.
+>
+> **About the `phi = 89°` / experimental `phi = 0°` mismatch.** Ane reports
+> that simulation φ = 89° corresponds to experimental φ = 0°. We keep
+> 89° here as instructed; this is a coordinate-convention reconciliation
+> issue (rcwa's azimuth is measured from one reference axis, the FTIR
+> setup uses another) that we should resolve once and document, not work
+> around case-by-case. **Open question**, deliberately not patched yet.
+
+```{python}
+def sinusoide(x, A1, l1, phi1):
+
+    y = A1*np.sin((2.0*np.pi/l1)*x + phi1)
+
+    return y
+
+
+periods = [12.90]
+
+# [BOLU] both polarisations in one pass; was: pTEM hard-set to LY, LX done by hand on a re-run
+polarizations = {
+    'LX': complexArray([1, 0j]),
+    'LY': complexArray([0, 1j]),
+}
+
+for period in periods:
+
+    main_period = period
+
+    x = np.linspace(0, main_period, 500)
+    y_theoretical = sinusoide(
+        x = x,
+        A1 = 3.00/2,
+        l1 = main_period,
+        phi1 = 0.0,
+    )
+
+    pattern_df = pd.DataFrame({
+        'x': x,
+        'y': y_theoretical
+    }
+    )
+
+    harmonics = 35 # impar!!
+    slices = 50
+    temperatures = [673] #K
+
+    # [BOLU] was: np.arange(3, 18, 0.25) — extended to cover the full data range
+    test_wavelengths = np.arange(3, 25, 0.25)
+    wavelengths = test_wavelengths
+    dataframe = pattern_df
+
+    angles = np.arange(30,40,10) # Sólo calcula para theta 30
+
+    deg = np.pi / 180
+    # [BOLU] phi = 89° in simulation == phi = 0° in experiment (Ane's convention).
+    # See note above — coordinate convention to reconcile, not changed here.
+    phi = 89*deg
+
+    layer_thickness = (np.max(dataframe['y']) - np.min(dataframe['y']))/slices
+    width = int((np.max(dataframe['x']) - np.min(dataframe['x'])))
+
+    print(r'Layer thickness: %s mu' %layer_thickness)
+    print(r'Width : %s mu' %width)
+
+    incident_layer = Layer(er=1.0, ur=1.0)
+    t1, t2 = complexArray([width, 0, 0]), complexArray([0, width, 0])
+
+    perm_1 = permittivity_1(wavelengths)
+    perm_2 = permittivity_2(wavelengths)
+
+    ss_permittivity = {ww:complex(p1, p2) for ww, p1, p2 in zip(wavelengths, perm_1, perm_2)}
+
+    temp = temperatures[0]
+    beta_apertura = 2.0
+    t_oxide = 0.90
+
+    # Storage for both polarisations (per period)
+    results_by_pol = {}
+
+    for pol_name, pTEM in polarizations.items():
+
+        print(f"\n=========  Polarisation {pol_name}  =========")
+        results_initial_test = {}
+
+        for angle in angles:
+
+            theta = angle*deg
+            print(f"Computing R, T, A for T={temp} K, {pol_name}, theta={angle}°")
+
+            results_initial_test.setdefault(angle, {})
+
+            reflect_coeffs = []
+            ref_det_coeffs = []
+            trans_coeffs = []
+            absorp_coeffs = []
+
+            for wavelength, permittivity in ss_permittivity.items():
+
+                inner_layers = []
+
+                # Aquí se introduce el criterio de signo e=e'-ie'':
+                permittivity = complex(permittivity.real, -permittivity.imag)
+
+                # Capa de sustrato
+                metal_layer = Layer(
+                    er=permittivity,
+                    ur=1.000022,
+                    thickness=200, # 0.20 mm de profundidad de sustrato
+                )
+
+                # Capa de óxido
+                o_perm = complex(oxide_n(wavelength), -oxide_k(wavelength))
+
+                permittivity_matrix = discretize_rugosity_with_oxide(
+                    dataframe,
+                    material_perm = permittivity,
+                    oxide_perm = o_perm,
+                    slices = slices,
+                    oxide_thickness = t_oxide
+                )
+
+                source = Source(
+                    wavelength=wavelength,
+                    theta=theta,
+                    phi=phi,
+                    pTEM=pTEM,
+                    layer = incident_layer
+                )
+
+                for perm_layer in permittivity_matrix:
+                    layer_matrix = perm_layer
+
+                    inner_layers.append(
+                        Layer(
+                            crystal = Crystal(
+                                np.array([width, 0]),
+                                er = layer_matrix,
+                                ur = 1.000022 + 0 * layer_matrix,
+                            ),
+                            thickness = layer_thickness,
+                        )
+                    )
+
+                transmission_layer = Layer(er=1.0, ur=1.0)
+
+                inner_layers = inner_layers + [metal_layer,]
+
+                layer_stack = LayerStack(
+                    *inner_layers,
+                    incident_layer = incident_layer,
+                    transmission_layer = transmission_layer,
+                )
+
+                solver = Solver(
+                    layer_stack = layer_stack,
+                    source = source,
+                    n_harmonics = harmonics
+                )
+                results  = solver.solve()
+                results_initial_test[angle].setdefault('x', []).append(wavelength)
+
+                (rxCalculated, ryCalculated, rzCalculated) = (results['rx'], results['ry'], results['rz'])
+                (txCalculated, tyCalculated, tzCalculated) = (results['tx'], results['ty'], results['tz'])
+
+                (R, T, RTot, TTot) = (results['R'], results['T'], results['RTot'], results['TTot'])
+                R_detector = solver.get_detected_reflectance(beta=beta_apertura)
+                print(f"  λ={wavelength:5.2f}  R={RTot:.4f}  T={TTot:.4f}  A={1-(RTot+TTot):.4f}  R_det={R_detector:.4f}")
+
+                reflect_coeffs.append(RTot)
+                trans_coeffs.append(TTot)
+                absorp_coeffs.append(1-(RTot+TTot))
+                ref_det_coeffs.append(R_detector)
+
+            results_initial_test[angle].setdefault('R', reflect_coeffs)
+            results_initial_test[angle].setdefault('T', trans_coeffs)
+            results_initial_test[angle].setdefault('A', absorp_coeffs)
+            results_initial_test[angle].setdefault('R_det', ref_det_coeffs)
+
+            df_pol = pd.DataFrame(results_initial_test[angle])
+            df_pol.to_csv(
+                f'./interactive/runs/adhoc/{pol_name}_{harmonics}_{t_oxide}_{main_period}_{beta_apertura}.csv',
+                index=False,
+            )
+            results_by_pol[pol_name] = df_pol
+
+    # ----- Polarisation average (LX + LY) / 2 -----
+    df_lx = results_by_pol['LX']
+    df_ly = results_by_pol['LY']
+    df_avg = pd.DataFrame({
+        'x':     df_lx['x'].values,
+        'R':     0.5*(df_lx['R']     + df_ly['R']),
+        'T':     0.5*(df_lx['T']     + df_ly['T']),
+        'A':     0.5*(df_lx['A']     + df_ly['A']),
+        'R_det': 0.5*(df_lx['R_det'] + df_ly['R_det']),
+    })
+    df_avg.to_csv(
+        f'./interactive/runs/adhoc/AVG_{harmonics}_{t_oxide}_{main_period}_{beta_apertura}.csv',
+        index=False,
+    )
+
+    # ── Plot generation moved out of test8.qmd ──
+    # The simulation cell (this one) only writes CSVs to ./runs/adhoc/.
+    # All visualisation is now in test8_plot.qmd, which loads those CSVs and
+    # the experimental triple from disk — so iterating on the figure no longer
+    # triggers the full ~4 min RCWA re-run. Render that file with:
+    #
+    #     quarto render test8_plot.qmd
+    #
+    print("Simulation done. CSVs written to ./runs/adhoc/. Render test8_plot.qmd for the figure.")
+```
+
+# 6. Output written
+
+```{python}
+import os
+os.listdir('./interactive/runs/adhoc')
+```

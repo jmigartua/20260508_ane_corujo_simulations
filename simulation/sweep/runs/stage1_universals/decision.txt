@@ -1,0 +1,19 @@
+# Stage 1 decision — universal Tier-1 best
+t_oxide_um       = 0.9
+beta_deg         = 1.0
+oxide_dispersion = HS_caliente
+Rdet_chi2_red    = 138.8257
+Rdet_RMSE        = 0.1178
+Rdet_pearson_r   = 0.9723
+
+# Top 5 by chi2_red
+ t_oxide_um  beta_deg oxide_dispersion  Rdet_chi2_red  Rdet_RMSE  Rdet_pearson_r
+        0.9       1.0      HS_caliente     138.825670   0.117824        0.972309
+        0.9       2.0      HS_caliente     138.825670   0.117824        0.972309
+        0.9       5.0      HS_caliente     138.825670   0.117824        0.972309
+        0.9       1.0          RS_frio     153.810646   0.124020        0.964932
+        0.9       2.0          RS_frio     153.810646   0.124020        0.964932
+
+# WARNING: best chi2_red = 138.8 >> 1
+# Per DISTANCE.md §6, do NOT proceed to Stage 2.
+# Bottleneck is structural (probably oxide-dispersion phonon model).

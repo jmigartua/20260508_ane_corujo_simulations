@@ -1,0 +1,9 @@
+# Stage 0b decision
+phi_sim_chosen = 89.0  (corresponds to phi_exp = 0°)
+NA_locked = 39
+
+chi2_red(R_det) per phi_sim:
+  φ_sim=  1.0°  χ²_red= 254.78
+  φ_sim= 89.0°  χ²_red= 224.89  ← chosen
+  φ_sim= 90.0°  χ²_red= 597.36
+  φ_sim= 90.0°  χ²_red= 597.36

@@ -1,0 +1,51 @@
+2026-05-09 10:21:29,836  INFO     ======================================================================
+2026-05-09 10:21:29,836  INFO     Stage 0b — φ-convention sanity check
+2026-05-09 10:21:29,836  INFO       phi grid          = [0.0, 1.0, 89.0, 90.0]
+2026-05-09 10:21:29,836  INFO       parallel          = 1
+2026-05-09 10:21:29,837  INFO       resume            = False
+2026-05-09 10:21:29,837  INFO       dry_run           = True
+2026-05-09 10:21:29,837  INFO       output            = /Users/User/Desktop/2026/20260508_ane_corujo_simulations/simulation/sweep/runs/stage0b_phi_convention
+2026-05-09 10:21:29,837  INFO       centre params     = period=12.9µm, A=1.5µm, t_oxide=0.3µm, NA=39 (locked by 0a), theta=30.0°, oxide=HS_caliente, beta=2.0°
+2026-05-09 10:21:29,837  INFO       exp target        = 12-3, θ=30°, φ_exp=0°
+2026-05-09 10:21:29,837  INFO     DRY RUN — would compute φ_sim = [0.0, 1.0, 89.0, 90.0]
+2026-05-09 10:21:39,788  INFO     ======================================================================
+2026-05-09 10:21:39,788  INFO     Stage 0b — φ-convention sanity check
+2026-05-09 10:21:39,788  INFO       phi grid          = [0.0, 1.0, 89.0, 90.0]
+2026-05-09 10:21:39,789  INFO       parallel          = 4
+2026-05-09 10:21:39,789  INFO       resume            = False
+2026-05-09 10:21:39,789  INFO       dry_run           = False
+2026-05-09 10:21:39,789  INFO       output            = /Users/User/Desktop/2026/20260508_ane_corujo_simulations/simulation/sweep/runs/stage0b_phi_convention
+2026-05-09 10:21:39,789  INFO       centre params     = period=12.9µm, A=1.5µm, t_oxide=0.3µm, NA=39 (locked by 0a), theta=30.0°, oxide=HS_caliente, beta=2.0°
+2026-05-09 10:21:39,789  INFO       exp target        = 12-3, θ=30°, φ_exp=0°
+2026-05-09 10:21:39,789  INFO     Spawning 4 workers …
+2026-05-09 10:21:42,783  ERROR      φ_sim=  0.0°: FAILED — Singular matrix
+2026-05-09 10:28:45,499  INFO       φ_sim=  1.0°: χ²_red(R_det)= 254.78  RMSE=0.1596  pearson=0.8349
+2026-05-09 10:28:47,942  INFO       φ_sim= 90.0°: χ²_red(R_det)= 597.36  RMSE=0.2444  pearson=0.9350
+2026-05-09 10:28:48,071  INFO       φ_sim= 89.0°: χ²_red(R_det)= 224.89  RMSE=0.1500  pearson=0.9316
+2026-05-09 10:28:48,591  INFO     Wall time: 428.8s (7.1 min)
+2026-05-09 10:28:48,591  INFO     Results CSV: /Users/User/Desktop/2026/20260508_ane_corujo_simulations/simulation/sweep/runs/stage0b_phi_convention/results.csv
+2026-05-09 10:45:23,737  INFO     ======================================================================
+2026-05-09 10:45:23,737  INFO     Stage 0b — φ-convention sanity check
+2026-05-09 10:45:23,737  INFO       phi grid          = [89.999]
+2026-05-09 10:45:23,737  INFO       parallel          = 1
+2026-05-09 10:45:23,737  INFO       resume            = True
+2026-05-09 10:45:23,737  INFO       dry_run           = False
+2026-05-09 10:45:23,737  INFO       output            = /Users/User/Desktop/2026/20260508_ane_corujo_simulations/simulation/sweep/runs/stage0b_phi_convention
+2026-05-09 10:45:23,738  INFO       centre params     = period=12.9µm, A=1.5µm, t_oxide=0.3µm, NA=39 (locked by 0a), theta=30.0°, oxide=HS_caliente, beta=2.0°
+2026-05-09 10:45:23,738  INFO       exp target        = 12-3, θ=30°, φ_exp=0°
+2026-05-09 10:45:23,738  INFO       φ_sim= 90.0°: AVG csv exists → skip
+2026-05-09 10:45:23,744  INFO     Wall time: 0.0s (0.0 min)
+2026-05-09 10:45:23,744  INFO     Results CSV: /Users/User/Desktop/2026/20260508_ane_corujo_simulations/simulation/sweep/runs/stage0b_phi_convention/results.csv
+2026-05-09 10:46:23,561  INFO     ======================================================================
+2026-05-09 10:46:23,561  INFO     Stage 0b — φ-convention sanity check
+2026-05-09 10:46:23,561  INFO       phi grid          = [89.999]
+2026-05-09 10:46:23,561  INFO       parallel          = 1
+2026-05-09 10:46:23,561  INFO       resume            = True
+2026-05-09 10:46:23,562  INFO       dry_run           = False
+2026-05-09 10:46:23,562  INFO       output            = /Users/User/Desktop/2026/20260508_ane_corujo_simulations/simulation/sweep/runs/stage0b_phi_convention
+2026-05-09 10:46:23,562  INFO       centre params     = period=12.9µm, A=1.5µm, t_oxide=0.3µm, NA=39 (locked by 0a), theta=30.0°, oxide=HS_caliente, beta=2.0°
+2026-05-09 10:46:23,562  INFO       exp target        = 12-3, θ=30°, φ_exp=0°
+2026-05-09 10:46:23,562  INFO       φ_sim= 90.0°: starting …
+2026-05-09 10:51:49,369  INFO       φ_sim= 90.0°: χ²_red(R_det)= 597.36  RMSE=0.2444  pearson=0.9350  runtime=325.8s
+2026-05-09 10:51:49,377  INFO     Wall time: 325.8s (5.4 min)
+2026-05-09 10:51:49,377  INFO     Results CSV: /Users/User/Desktop/2026/20260508_ane_corujo_simulations/simulation/sweep/runs/stage0b_phi_convention/results.csv

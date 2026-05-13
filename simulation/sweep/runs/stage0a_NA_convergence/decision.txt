@@ -1,0 +1,13 @@
+# Stage 0a decision
+NA_chosen = 39
+sigma_floor = 0.01
+NA_ref = 51
+max_abs_delta_vs_NA51:
+  NA= 15  max|Δ|=0.1750
+  NA= 19  max|Δ|=0.1168
+  NA= 23  max|Δ|=0.0749
+  NA= 27  max|Δ|=0.0462
+  NA= 31  max|Δ|=0.0267
+  NA= 35  max|Δ|=0.0136
+  NA= 39  max|Δ|=0.0063  ← chosen
+  NA= 51  max|Δ|=0.0000

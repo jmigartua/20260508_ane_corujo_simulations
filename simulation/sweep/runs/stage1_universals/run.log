@@ -1,0 +1,125 @@
+2026-05-09 11:05:36,058  INFO     ======================================================================
+2026-05-09 11:05:36,059  INFO     Stage 1 — universal Tier-1 sweep
+2026-05-09 11:05:36,059  INFO       grid              = 7 × 6 × 2 = 84 configs
+2026-05-09 11:05:36,059  INFO       t_oxide_grid      = [0.0, 0.05, 0.1, 0.2, 0.3, 0.5, 0.9]
+2026-05-09 11:05:36,059  INFO       beta_grid         = [1.0, 2.0, 5.0, 10.0, 20.0, 30.0]
+2026-05-09 11:05:36,059  INFO       oxide_grid        = ['HS_caliente', 'RS_frio']
+2026-05-09 11:05:36,059  INFO       parallel          = 1
+2026-05-09 11:05:36,059  INFO       resume            = False
+2026-05-09 11:05:36,059  INFO       dry_run           = True
+2026-05-09 11:05:36,059  INFO       output            = /Users/User/Desktop/2026/20260508_ane_corujo_simulations/simulation/sweep/runs/stage1_universals
+2026-05-09 11:05:36,059  INFO       centre params     = period=12.9µm, A=1.5µm, NA=39 (Stage 0a), phi_sim=89.0° (Stage 0b), theta=30.0°
+2026-05-09 11:05:36,059  INFO       exp target        = 12-3, θ=30°, φ_exp=0°
+2026-05-09 11:05:36,060  INFO     DRY RUN — would compute 84 configs
+2026-05-09 11:05:44,329  INFO     ======================================================================
+2026-05-09 11:05:44,329  INFO     Stage 1 — universal Tier-1 sweep
+2026-05-09 11:05:44,329  INFO       grid              = 7 × 6 × 2 = 84 configs
+2026-05-09 11:05:44,329  INFO       t_oxide_grid      = [0.0, 0.05, 0.1, 0.2, 0.3, 0.5, 0.9]
+2026-05-09 11:05:44,329  INFO       beta_grid         = [1.0, 2.0, 5.0, 10.0, 20.0, 30.0]
+2026-05-09 11:05:44,329  INFO       oxide_grid        = ['HS_caliente', 'RS_frio']
+2026-05-09 11:05:44,329  INFO       parallel          = 4
+2026-05-09 11:05:44,330  INFO       resume            = False
+2026-05-09 11:05:44,330  INFO       dry_run           = False
+2026-05-09 11:05:44,330  INFO       output            = /Users/User/Desktop/2026/20260508_ane_corujo_simulations/simulation/sweep/runs/stage1_universals
+2026-05-09 11:05:44,330  INFO       centre params     = period=12.9µm, A=1.5µm, NA=39 (Stage 0a), phi_sim=89.0° (Stage 0b), theta=30.0°
+2026-05-09 11:05:44,330  INFO       exp target        = 12-3, θ=30°, φ_exp=0°
+2026-05-09 11:05:44,330  INFO     Spawning 4 workers …
+2026-05-09 11:11:27,086  INFO     ======================================================================
+2026-05-09 11:11:27,086  INFO     Stage 1 — universal Tier-1 sweep
+2026-05-09 11:11:27,086  INFO       grid              = 7 × 6 × 2 = 84 configs
+2026-05-09 11:11:27,087  INFO       t_oxide_grid      = [0.0, 0.05, 0.1, 0.2, 0.3, 0.5, 0.9]
+2026-05-09 11:11:27,087  INFO       beta_grid         = [1.0, 2.0, 5.0, 10.0, 20.0, 30.0]
+2026-05-09 11:11:27,087  INFO       oxide_grid        = ['HS_caliente', 'RS_frio']
+2026-05-09 11:11:27,087  INFO       parallel          = 4
+2026-05-09 11:11:27,087  INFO       resume            = True
+2026-05-09 11:11:27,087  INFO       dry_run           = False
+2026-05-09 11:11:27,087  INFO       output            = /Users/User/Desktop/2026/20260508_ane_corujo_simulations/simulation/sweep/runs/stage1_universals
+2026-05-09 11:11:27,087  INFO       centre params     = period=12.9µm, A=1.5µm, NA=39 (Stage 0a), phi_sim=89.0° (Stage 0b), theta=30.0°
+2026-05-09 11:11:27,087  INFO       exp target        = 12-3, θ=30°, φ_exp=0°
+2026-05-09 11:11:27,090  INFO     Spawning 4 workers …
+2026-05-09 11:21:53,749  INFO       [ 1/84] [0.00,   2.0, RS_frio]: χ²_red(R_det)=  205.41  RMSE=0.1433  pearson=0.9340
+2026-05-09 11:21:55,051  INFO       [ 2/84] [0.00,   1.0, HS_caliente]: χ²_red(R_det)=  205.41  RMSE=0.1433  pearson=0.9340
+2026-05-09 11:21:56,435  INFO       [ 3/84] [0.00,   2.0, HS_caliente]: χ²_red(R_det)=  205.41  RMSE=0.1433  pearson=0.9340
+2026-05-09 11:21:57,908  INFO       [ 4/84] [0.00,   1.0, RS_frio]: χ²_red(R_det)=  205.41  RMSE=0.1433  pearson=0.9340
+2026-05-09 11:32:20,354  INFO       [ 5/84] [0.00,   5.0, HS_caliente]: χ²_red(R_det)=  205.41  RMSE=0.1433  pearson=0.9340
+2026-05-09 11:32:23,571  INFO       [ 6/84] [0.00,   5.0, RS_frio]: χ²_red(R_det)=  205.41  RMSE=0.1433  pearson=0.9340
+2026-05-09 11:32:26,268  INFO       [ 7/84] [0.00,  10.0, HS_caliente]: χ²_red(R_det)=  212.75  RMSE=0.1459  pearson=0.9235
+2026-05-09 11:32:27,601  INFO       [ 8/84] [0.00,  10.0, RS_frio]: χ²_red(R_det)=  212.75  RMSE=0.1459  pearson=0.9235
+2026-05-09 11:43:00,768  INFO       [ 9/84] [0.00,  20.0, HS_caliente]: χ²_red(R_det)=  220.33  RMSE=0.1484  pearson=0.9142
+2026-05-09 11:43:06,945  INFO       [10/84] [0.00,  20.0, RS_frio]: χ²_red(R_det)=  220.33  RMSE=0.1484  pearson=0.9142
+2026-05-09 11:43:09,877  INFO       [11/84] [0.00,  30.0, HS_caliente]: χ²_red(R_det)=  274.57  RMSE=0.1657  pearson=0.8713
+2026-05-09 11:43:14,565  INFO       [12/84] [0.00,  30.0, RS_frio]: χ²_red(R_det)=  274.57  RMSE=0.1657  pearson=0.8713
+2026-05-09 11:54:26,359  INFO       [13/84] [0.05,   1.0, HS_caliente]: χ²_red(R_det)=  207.72  RMSE=0.1441  pearson=0.9334
+2026-05-09 11:54:33,521  INFO       [14/84] [0.05,   1.0, RS_frio]: χ²_red(R_det)=  207.67  RMSE=0.1441  pearson=0.9334
+2026-05-09 11:54:37,355  INFO       [15/84] [0.05,   2.0, HS_caliente]: χ²_red(R_det)=  207.72  RMSE=0.1441  pearson=0.9334
+2026-05-09 11:54:41,595  INFO       [16/84] [0.05,   2.0, RS_frio]: χ²_red(R_det)=  207.67  RMSE=0.1441  pearson=0.9334
+2026-05-09 12:05:36,755  INFO       [17/84] [0.05,   5.0, HS_caliente]: χ²_red(R_det)=  207.72  RMSE=0.1441  pearson=0.9334
+2026-05-09 12:05:43,961  INFO       [18/84] [0.05,   5.0, RS_frio]: χ²_red(R_det)=  207.67  RMSE=0.1441  pearson=0.9334
+2026-05-09 12:05:49,387  INFO       [19/84] [0.05,  10.0, HS_caliente]: χ²_red(R_det)=  215.15  RMSE=0.1467  pearson=0.9229
+2026-05-09 12:05:55,735  INFO       [20/84] [0.05,  10.0, RS_frio]: χ²_red(R_det)=  215.10  RMSE=0.1467  pearson=0.9229
+2026-05-09 12:16:33,311  INFO       [21/84] [0.05,  20.0, HS_caliente]: χ²_red(R_det)=  222.64  RMSE=0.1492  pearson=0.9136
+2026-05-09 12:16:43,384  INFO       [22/84] [0.05,  20.0, RS_frio]: χ²_red(R_det)=  222.59  RMSE=0.1492  pearson=0.9137
+2026-05-09 12:16:48,179  INFO       [23/84] [0.05,  30.0, HS_caliente]: χ²_red(R_det)=  277.67  RMSE=0.1666  pearson=0.8702
+2026-05-09 12:16:56,535  INFO       [24/84] [0.05,  30.0, RS_frio]: χ²_red(R_det)=  277.54  RMSE=0.1666  pearson=0.8703
+2026-05-09 12:26:51,346  INFO       [25/84] [0.10,   1.0, HS_caliente]: χ²_red(R_det)=  212.00  RMSE=0.1456  pearson=0.9325
+2026-05-09 12:27:02,246  INFO       [26/84] [0.10,   1.0, RS_frio]: χ²_red(R_det)=  211.70  RMSE=0.1455  pearson=0.9326
+2026-05-09 12:27:08,860  INFO       [27/84] [0.10,   2.0, HS_caliente]: χ²_red(R_det)=  212.00  RMSE=0.1456  pearson=0.9325
+2026-05-09 12:27:18,477  INFO       [28/84] [0.10,   2.0, RS_frio]: χ²_red(R_det)=  211.70  RMSE=0.1455  pearson=0.9326
+2026-05-09 12:37:12,583  INFO       [29/84] [0.10,   5.0, HS_caliente]: χ²_red(R_det)=  212.00  RMSE=0.1456  pearson=0.9325
+2026-05-09 12:37:23,612  INFO       [30/84] [0.10,   5.0, RS_frio]: χ²_red(R_det)=  211.70  RMSE=0.1455  pearson=0.9326
+2026-05-09 12:37:31,268  INFO       [31/84] [0.10,  10.0, HS_caliente]: χ²_red(R_det)=  220.07  RMSE=0.1483  pearson=0.9216
+2026-05-09 12:37:42,743  INFO       [32/84] [0.10,  10.0, RS_frio]: χ²_red(R_det)=  219.76  RMSE=0.1482  pearson=0.9217
+2026-05-09 12:47:10,138  INFO       [33/84] [0.10,  20.0, HS_caliente]: χ²_red(R_det)=  227.79  RMSE=0.1509  pearson=0.9122
+2026-05-09 12:47:24,615  INFO       [34/84] [0.10,  20.0, RS_frio]: χ²_red(R_det)=  227.46  RMSE=0.1508  pearson=0.9123
+2026-05-09 12:47:33,587  INFO       [35/84] [0.10,  30.0, HS_caliente]: χ²_red(R_det)=  286.17  RMSE=0.1692  pearson=0.8669
+2026-05-09 12:47:45,415  INFO       [36/84] [0.10,  30.0, RS_frio]: χ²_red(R_det)=  285.36  RMSE=0.1689  pearson=0.8671
+2026-05-09 12:57:03,953  INFO       [37/84] [0.20,   1.0, HS_caliente]: χ²_red(R_det)=  222.30  RMSE=0.1491  pearson=0.9307
+2026-05-09 12:57:19,066  INFO       [38/84] [0.20,   1.0, RS_frio]: χ²_red(R_det)=  221.34  RMSE=0.1488  pearson=0.9308
+2026-05-09 12:57:28,265  INFO       [39/84] [0.20,   2.0, HS_caliente]: χ²_red(R_det)=  222.30  RMSE=0.1491  pearson=0.9307
+2026-05-09 12:57:40,383  INFO       [40/84] [0.20,   2.0, RS_frio]: χ²_red(R_det)=  221.34  RMSE=0.1488  pearson=0.9308
+2026-05-09 13:06:53,453  INFO       [41/84] [0.20,   5.0, HS_caliente]: χ²_red(R_det)=  222.30  RMSE=0.1491  pearson=0.9307
+2026-05-09 13:07:09,608  INFO       [42/84] [0.20,   5.0, RS_frio]: χ²_red(R_det)=  221.34  RMSE=0.1488  pearson=0.9308
+2026-05-09 13:07:18,658  INFO       [43/84] [0.20,  10.0, HS_caliente]: χ²_red(R_det)=  231.14  RMSE=0.1520  pearson=0.9198
+2026-05-09 13:07:32,234  INFO       [44/84] [0.20,  10.0, RS_frio]: χ²_red(R_det)=  230.27  RMSE=0.1517  pearson=0.9198
+2026-05-09 13:16:52,993  INFO       [45/84] [0.20,  20.0, HS_caliente]: χ²_red(R_det)=  239.51  RMSE=0.1548  pearson=0.9098
+2026-05-09 13:17:10,742  INFO       [46/84] [0.20,  20.0, RS_frio]: χ²_red(R_det)=  238.60  RMSE=0.1545  pearson=0.9098
+2026-05-09 13:17:21,749  INFO       [47/84] [0.20,  30.0, HS_caliente]: χ²_red(R_det)=  307.06  RMSE=0.1752  pearson=0.8596
+2026-05-09 13:17:38,535  INFO       [48/84] [0.20,  30.0, RS_frio]: χ²_red(R_det)=  304.79  RMSE=0.1746  pearson=0.8600
+2026-05-09 13:26:53,180  INFO       [49/84] [0.30,   1.0, HS_caliente]: χ²_red(R_det)=  224.89  RMSE=0.1500  pearson=0.9316
+2026-05-09 13:27:10,955  INFO       [50/84] [0.30,   1.0, RS_frio]: χ²_red(R_det)=  224.92  RMSE=0.1500  pearson=0.9312
+2026-05-09 13:27:23,102  INFO       [51/84] [0.30,   2.0, HS_caliente]: χ²_red(R_det)=  224.89  RMSE=0.1500  pearson=0.9316
+2026-05-09 13:27:40,108  INFO       [52/84] [0.30,   2.0, RS_frio]: χ²_red(R_det)=  224.92  RMSE=0.1500  pearson=0.9312
+2026-05-09 13:36:49,551  INFO       [53/84] [0.30,   5.0, HS_caliente]: χ²_red(R_det)=  224.89  RMSE=0.1500  pearson=0.9316
+2026-05-09 13:37:13,007  INFO       [54/84] [0.30,   5.0, RS_frio]: χ²_red(R_det)=  224.92  RMSE=0.1500  pearson=0.9312
+2026-05-09 13:37:25,676  INFO       [55/84] [0.30,  10.0, HS_caliente]: χ²_red(R_det)=  231.65  RMSE=0.1522  pearson=0.9233
+2026-05-09 13:37:44,510  INFO       [56/84] [0.30,  10.0, RS_frio]: χ²_red(R_det)=  232.35  RMSE=0.1524  pearson=0.9222
+2026-05-09 13:46:50,545  INFO       [57/84] [0.30,  20.0, HS_caliente]: χ²_red(R_det)=  242.91  RMSE=0.1559  pearson=0.9110
+2026-05-09 13:47:10,505  INFO       [58/84] [0.30,  20.0, RS_frio]: χ²_red(R_det)=  243.24  RMSE=0.1560  pearson=0.9102
+2026-05-09 13:47:23,984  INFO       [59/84] [0.30,  30.0, HS_caliente]: χ²_red(R_det)=  315.43  RMSE=0.1776  pearson=0.8574
+2026-05-09 13:47:41,862  INFO       [60/84] [0.30,  30.0, RS_frio]: χ²_red(R_det)=  314.37  RMSE=0.1773  pearson=0.8569
+2026-05-09 13:56:31,520  INFO       [61/84] [0.50,   1.0, HS_caliente]: χ²_red(R_det)=  202.05  RMSE=0.1421  pearson=0.9399
+2026-05-09 13:56:53,052  INFO       [62/84] [0.50,   1.0, RS_frio]: χ²_red(R_det)=  205.92  RMSE=0.1435  pearson=0.9379
+2026-05-09 13:57:08,331  INFO       [63/84] [0.50,   2.0, HS_caliente]: χ²_red(R_det)=  202.05  RMSE=0.1421  pearson=0.9399
+2026-05-09 13:57:26,072  INFO       [64/84] [0.50,   2.0, RS_frio]: χ²_red(R_det)=  205.92  RMSE=0.1435  pearson=0.9379
+2026-05-09 14:06:17,853  INFO       [65/84] [0.50,   5.0, HS_caliente]: χ²_red(R_det)=  202.05  RMSE=0.1421  pearson=0.9399
+2026-05-09 14:06:41,341  INFO       [66/84] [0.50,   5.0, RS_frio]: χ²_red(R_det)=  205.92  RMSE=0.1435  pearson=0.9379
+2026-05-09 14:06:57,899  INFO       [67/84] [0.50,  10.0, HS_caliente]: χ²_red(R_det)=  203.56  RMSE=0.1427  pearson=0.9384
+2026-05-09 14:07:18,101  INFO       [68/84] [0.50,  10.0, RS_frio]: χ²_red(R_det)=  208.21  RMSE=0.1443  pearson=0.9355
+2026-05-09 14:16:03,585  INFO       [69/84] [0.50,  20.0, HS_caliente]: χ²_red(R_det)=  227.32  RMSE=0.1508  pearson=0.9158
+2026-05-09 14:16:24,366  INFO       [70/84] [0.50,  20.0, RS_frio]: χ²_red(R_det)=  231.09  RMSE=0.1520  pearson=0.9139
+2026-05-09 14:16:41,478  INFO       [71/84] [0.50,  30.0, HS_caliente]: χ²_red(R_det)=  311.98  RMSE=0.1766  pearson=0.8527
+2026-05-09 14:17:02,865  INFO       [72/84] [0.50,  30.0, RS_frio]: χ²_red(R_det)=  312.73  RMSE=0.1768  pearson=0.8522
+2026-05-09 14:25:50,511  INFO       [73/84] [0.90,   1.0, HS_caliente]: χ²_red(R_det)=  138.83  RMSE=0.1178  pearson=0.9723
+2026-05-09 14:26:12,434  INFO       [74/84] [0.90,   1.0, RS_frio]: χ²_red(R_det)=  153.81  RMSE=0.1240  pearson=0.9649
+2026-05-09 14:26:30,746  INFO       [75/84] [0.90,   2.0, HS_caliente]: χ²_red(R_det)=  138.83  RMSE=0.1178  pearson=0.9723
+2026-05-09 14:26:52,409  INFO       [76/84] [0.90,   2.0, RS_frio]: χ²_red(R_det)=  153.81  RMSE=0.1240  pearson=0.9649
+2026-05-09 14:35:34,777  INFO       [77/84] [0.90,   5.0, HS_caliente]: χ²_red(R_det)=  138.83  RMSE=0.1178  pearson=0.9723
+2026-05-09 14:35:57,182  INFO       [78/84] [0.90,   5.0, RS_frio]: χ²_red(R_det)=  153.81  RMSE=0.1240  pearson=0.9649
+2026-05-09 14:36:17,631  INFO       [79/84] [0.90,  10.0, HS_caliente]: χ²_red(R_det)=  157.68  RMSE=0.1256  pearson=0.9581
+2026-05-09 14:36:40,567  INFO       [80/84] [0.90,  10.0, RS_frio]: χ²_red(R_det)=  172.22  RMSE=0.1312  pearson=0.9513
+2026-05-09 14:45:39,910  INFO       [81/84] [0.90,  20.0, HS_caliente]: χ²_red(R_det)=  227.24  RMSE=0.1507  pearson=0.9044
+2026-05-09 14:45:58,300  INFO       [82/84] [0.90,  20.0, RS_frio]: χ²_red(R_det)=  237.38  RMSE=0.1541  pearson=0.8986
+2026-05-09 14:46:13,109  INFO       [83/84] [0.90,  30.0, HS_caliente]: χ²_red(R_det)=  321.94  RMSE=0.1794  pearson=0.8525
+2026-05-09 14:46:27,992  INFO       [84/84] [0.90,  30.0, RS_frio]: χ²_red(R_det)=  342.92  RMSE=0.1852  pearson=0.8366
+2026-05-09 14:46:29,023  INFO     Wall time: 12901.9s (215.0 min)
+2026-05-09 14:46:29,023  INFO     Results CSV: /Users/User/Desktop/2026/20260508_ane_corujo_simulations/simulation/sweep/runs/stage1_universals/results.csv

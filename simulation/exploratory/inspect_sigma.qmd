@@ -1,0 +1,173 @@
+---
+title: "Experimental σ(λ) inspection — sample 12-3, θ=30°, φ_exp=0°"
+subtitle: "Does the dispersion across the 3 FTIR repeats have wavelength-dependent structure?"
+author: "Bolu / Josu"
+date: 2026-05-09
+format:
+  html:
+    code-fold: false
+    toc: true
+    toc-depth: 2
+    embed-resources: true
+    fig-width: 8
+    fig-height: 7
+jupyter: rcwa-venv
+execute:
+  cache: false
+  echo: true
+  warning: false
+---
+
+> **Question (i)** from the post-Stage-1 synthesis (DESIGN_LOG.md):
+> Ane's PDF [Section 4 of *Tratamiento*](../../ane_originals/Tratamiento%20de%20imágenes.%20Modelos%20y%20comparación%20con%20medidas%20experimentales%20(1).pdf)
+> shows the AFM ±σ envelope is **asymmetric for sample 12-3** — wider in the
+> valleys than at the peaks. The hypothesis under test is whether the
+> *experimental FTIR* σ(λ) — across 3 repeats — has analogous structure.
+> If yes, that's empirical motivation for a two-thickness oxide model
+> (peaks vs valleys); if no, σ is dominated by instrument noise and the
+> two-thickness hypothesis is unsupported.
+
+# 1. Load the 3 repeats
+
+```{python}
+#| label: load
+import sys
+from pathlib import Path
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from scipy.interpolate import interp1d
+
+sys.path.insert(0, str(Path("./lib")))
+import plot_helpers   # noqa: F401 — pulls in LaTeX rcParams as a side effect
+plot_helpers._ensure_latex_rcparams()
+
+EXP_DIR  = Path("../data/experimental")
+SAMPLE   = "12-3"
+THETA    = 30
+PHI_EXP  = 0
+
+files = sorted(EXP_DIR.glob(f"{SAMPLE}_{THETA}_{PHI_EXP}_*.CSV"))
+assert len(files) == 3, f"expected 3 repeats, got {len(files)}"
+
+repeats = []
+for f in files:
+    raw = pd.read_csv(f, header=None, names=["wn", "R_pct"])
+    raw = raw[raw["R_pct"] > 0].copy()
+    raw["lambda_um"] = 1e4 / raw["wn"]
+    raw["R"] = raw["R_pct"] / 100.0
+    raw = raw.sort_values("lambda_um").reset_index(drop=True)
+    repeats.append((raw["lambda_um"].values, raw["R"].values))
+    print(f"{f.name}: {len(raw)} pts, λ ∈ [{raw['lambda_um'].min():.2f}, {raw['lambda_um'].max():.2f}] µm")
+```
+
+# 2. Common λ grid + mean / σ
+
+```{python}
+#| label: stats
+# Use a uniform λ grid covering the overlap of all 3 repeats
+lam_min = max(r[0].min() for r in repeats)
+lam_max = min(r[0].max() for r in repeats)
+lam = np.arange(np.ceil(lam_min*4)/4, lam_max, 0.05)   # 0.05 µm step → fine enough to see σ structure
+
+R_stack = np.array([
+    interp1d(l, r, bounds_error=False, fill_value=np.nan, assume_sorted=True)(lam)
+    for l, r in repeats
+])
+R_mean = np.nanmean(R_stack, axis=0)
+R_std  = np.nanstd(R_stack, axis=0, ddof=1)
+R_sem  = R_std / np.sqrt(R_stack.shape[0])
+valid  = ~np.isnan(R_mean)
+lam, R_mean, R_std, R_sem = lam[valid], R_mean[valid], R_std[valid], R_sem[valid]
+
+print(f"λ grid: {lam.min():.2f} – {lam.max():.2f} µm, {len(lam)} pts (0.05 µm step)")
+print(f"⟨R⟩    : {R_mean.min():.3f} – {R_mean.max():.3f}")
+print(f"σ      : {R_std.min():.5f} – {R_std.max():.5f}    (mean σ = {R_std.mean():.5f})")
+print(f"σ/⟨R⟩  : {(R_std/R_mean).min():.3%} – {(R_std/R_mean).max():.3%}")
+```
+
+# 3. Plot — top: ⟨R⟩ ± σ + 3 repeats; bottom: σ(λ) standalone
+
+```{python}
+#| label: figure
+fig, ax = plt.subplots(2, 1, figsize=(8, 7), sharex=True, constrained_layout=True,
+                       gridspec_kw={"height_ratios": [3, 1.5]})
+
+# --- top: 3 repeats faded + mean + ±σ band ---
+for i, (l, r) in enumerate(repeats):
+    ax[0].plot(l, r, alpha=0.30, lw=0.9, label=rf"repeat {i+1}")
+ax[0].fill_between(lam, R_mean - R_std, R_mean + R_std,
+                   color="C2", alpha=0.25, label=r"$\pm\sigma$")
+ax[0].plot(lam, R_mean, color="C2", lw=2.0, label=r"$\langle R \rangle_{\mathrm{exp}}$")
+
+ax[0].set_ylim(-plot_helpers.Y_PAD, 1.0 + plot_helpers.Y_PAD)
+ax[0].set_ylabel(r"$R$")
+ax[0].set_title(rf"SS\_12-3, $\theta=30^{{\circ}}$, $\varphi_{{\mathrm{{exp}}}}=0^{{\circ}}$ — 3 FTIR repeats")
+ax[0].grid(True, alpha=0.4)
+ax[0].legend(loc="lower right", framealpha=0.88, ncol=2)
+
+# --- bottom: σ(λ) on its own — does it have structure? ---
+ax[1].plot(lam, R_std, color="black", lw=1.5, label=r"$\sigma(\lambda)$")
+ax[1].axhline(0.01, color="red", ls="--", lw=1.0, alpha=0.7,
+              label=r"$\sigma_{\mathrm{floor}}=0.01$")
+
+ax[1].set_xlabel(r"$\lambda\;[\mu\mathrm{m}]$")
+ax[1].set_ylabel(r"$\sigma$")
+ax[1].grid(True, alpha=0.4)
+ax[1].legend(loc="upper right", framealpha=0.88, fontsize=8)
+
+plt.show()
+```
+
+# 4. Diagnosis — is σ structure correlated with R features?
+
+```{python}
+#| label: cross-check
+# Find local extrema of R(λ) and check σ at those points
+from scipy.signal import find_peaks
+
+peaks_idx, _   = find_peaks(R_mean,   prominence=0.02)
+valleys_idx, _ = find_peaks(-R_mean,  prominence=0.02)
+
+print(f"R(λ) peaks   at λ = {[round(lam[i], 2) for i in peaks_idx]}")
+print(f"             σ   = {[round(R_std[i], 4) for i in peaks_idx]}")
+print()
+print(f"R(λ) valleys at λ = {[round(lam[i], 2) for i in valleys_idx]}")
+print(f"             σ   = {[round(R_std[i], 4) for i in valleys_idx]}")
+print()
+print(f"⟨σ at peaks⟩   = {R_std[peaks_idx].mean():.4f}")
+print(f"⟨σ at valleys⟩ = {R_std[valleys_idx].mean():.4f}")
+print(f"⟨σ overall⟩    = {R_std.mean():.4f}")
+
+# Is σ markedly larger at one type of feature?
+peaks_mean   = R_std[peaks_idx].mean()
+valleys_mean = R_std[valleys_idx].mean()
+overall      = R_std.mean()
+
+if abs(peaks_mean - valleys_mean) > 0.5 * overall:
+    if peaks_mean > valleys_mean:
+        msg = "↑ σ is LARGER at R-peaks than R-valleys."
+    else:
+        msg = "↑ σ is LARGER at R-valleys than R-peaks."
+    msg += " The two-thickness oxide hypothesis has empirical support."
+else:
+    msg = ("↓ σ at peaks vs valleys is similar (within 50% of overall mean σ). "
+           "The two-thickness oxide hypothesis is NOT empirically supported by this dataset; "
+           "σ probably reflects instrument noise rather than spatial heterogeneity.")
+print()
+print(msg)
+```
+
+# 5. What this tells us
+
+```{python}
+#| label: interpretation
+print("Reading the σ(λ) curve:")
+print(f"  - σ floor (instrument-level): observed σ_min = {R_std.min():.5f} (vs assumed σ_floor = 0.01)")
+print(f"  - σ peak-to-peak             : {R_std.max() - R_std.min():.4f}")
+print(f"  - σ values above 0.01 floor  : {(R_std > 0.01).sum()} / {len(R_std)} bins")
+print()
+print("If σ were dominated by instrument noise it would be roughly flat in λ.")
+print("Structure in σ(λ) — particularly correlated with R(λ) features — would")
+print("suggest sample-side variability (e.g. spot-to-spot oxide thickness differences).")
+```

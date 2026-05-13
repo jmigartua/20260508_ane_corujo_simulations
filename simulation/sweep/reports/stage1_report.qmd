@@ -1,0 +1,198 @@
+---
+title: "Stage 1 — universal Tier-1 sweep (report)"
+subtitle: "$t_{\\mathrm{oxide}} \\times \\beta \\times$ oxide dispersion, sample SS\\_12-3"
+author: "Bolu / Josu"
+date: 2026-05-09
+format:
+  html:
+    code-fold: false
+    toc: true
+    toc-depth: 2
+    embed-resources: true
+    fig-width: 11
+    fig-height: 5
+jupyter: rcwa-venv
+execute:
+  cache: false
+  echo: true
+  warning: false
+---
+
+> **Decoupled report.** Reads the outputs of [bin/run_stage1.py](../bin/run_stage1.py)
+> from [runs/stage1_universals/](../runs/stage1_universals/) — does **not** run RCWA.
+>
+> If the output directory does not yet exist, run the script first:
+>
+> ```
+> python sweep/bin/run_stage1.py --parallel 4
+> ```
+
+# 1. Load results
+
+```{python}
+#| label: load
+import sys
+from pathlib import Path
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+plt.rcParams.update({
+    "text.usetex":     True,
+    "font.family":     "serif",
+    "font.size":       9,
+    "axes.titlesize":  10,
+    "axes.labelsize":  10,
+    "legend.fontsize": 8,
+    "text.latex.preamble": r"\usepackage{amsmath}\usepackage{amssymb}",
+})
+
+sys.path.insert(0, str(Path("./lib")))
+import sweep_runner as sr
+
+OUT          = Path("./sweep/runs/stage1_universals")
+results_csv  = OUT / "results.csv"
+decision_txt = OUT / "decision.txt"
+traces_dir   = OUT / "traces"
+
+assert results_csv.exists(), f"Run `python sweep/bin/run_stage1.py` first — {results_csv} not found."
+df = pd.read_csv(results_csv).sort_values(["oxide_dispersion", "t_oxide_um", "beta_deg"]).reset_index(drop=True)
+
+print(f"{len(df)} simulations in results.csv")
+df.head(10)[["t_oxide_um", "beta_deg", "oxide_dispersion",
+             "Rdet_chi2_red", "Rdet_RMSE", "Rdet_pearson_r"]].round(4)
+```
+
+# 2. Heatmaps — χ²_red over (t_oxide, β) per oxide dispersion
+
+```{python}
+#| label: heatmaps
+
+oxides = sorted(df["oxide_dispersion"].unique())
+fig, ax = plt.subplots(1, len(oxides), figsize=(5*len(oxides), 4.5), constrained_layout=True)
+if len(oxides) == 1:
+    ax = [ax]
+
+for i, oxide in enumerate(oxides):
+    sub = df[df["oxide_dispersion"] == oxide]
+    pivot = sub.pivot(index="t_oxide_um", columns="beta_deg", values="Rdet_chi2_red")
+    im = ax[i].imshow(np.log10(pivot.values), aspect="auto", origin="lower",
+                      cmap="viridis_r")
+    ax[i].set_xticks(range(len(pivot.columns)))
+    ax[i].set_xticklabels([f"{b:g}" for b in pivot.columns])
+    ax[i].set_yticks(range(len(pivot.index)))
+    ax[i].set_yticklabels([f"{t:g}" for t in pivot.index])
+    ax[i].set_xlabel(r"$\beta\;[^{\circ}]$")
+    ax[i].set_ylabel(r"$t_{\mathrm{oxide}}\;[\mu\mathrm{m}]$")
+    title_oxide = oxide.replace("_", r"\_")
+    ax[i].set_title(rf"$\log_{{10}} \chi^2_{{\mathrm{{red}}}}(R_{{\mathrm{{det}}}})$ — {title_oxide}")
+    cbar = plt.colorbar(im, ax=ax[i])
+    cbar.set_label(r"$\log_{10}\,\chi^2_{\mathrm{red}}$")
+    # mark the per-oxide minimum
+    j_t, j_b = np.unravel_index(np.argmin(pivot.values), pivot.shape)
+    ax[i].plot(j_b, j_t, marker="*", ms=18, color="white", mec="red", mew=1.5)
+
+plt.show()
+```
+
+# 3. Best configuration overall
+
+```{python}
+#| label: best
+best_idx = df["Rdet_chi2_red"].idxmin()
+best = df.loc[best_idx]
+print(f"Best config (argmin χ²_red across all {len(df)} runs):")
+print(f"  t_oxide          = {best['t_oxide_um']:.3f} µm")
+print(f"  beta             = {best['beta_deg']:g}°")
+print(f"  oxide_dispersion = {best['oxide_dispersion']}")
+print(f"  χ²_red(R_det)    = {best['Rdet_chi2_red']:.2f}")
+print(f"  RMSE             = {best['Rdet_RMSE']:.4f}")
+print(f"  Pearson r        = {best['Rdet_pearson_r']:.4f}")
+print()
+print("Top 5 by χ²_red:")
+top = df.nsmallest(5, "Rdet_chi2_red")[
+    ["t_oxide_um", "beta_deg", "oxide_dispersion",
+     "Rdet_chi2_red", "Rdet_RMSE", "Rdet_pearson_r"]
+].round(4)
+print(top.to_string(index=False))
+```
+
+# 4. Best curve vs experiment
+
+```{python}
+#| label: best-curve
+from scipy.interpolate import interp1d
+
+cfg_best = sr.SimConfig(
+    period_um=12.9, A_um=1.5,
+    t_oxide_um=float(best["t_oxide_um"]),
+    oxide_dispersion=str(best["oxide_dispersion"]),
+    theta_deg=30.0, phi_sim_deg=89.0,
+    harmonics=39, slices=50,
+    beta_deg=float(best["beta_deg"]),
+    wavelengths_um=np.arange(3.0, 25.0, 0.25),
+)
+stem = cfg_best.filename_stem()
+avg_best = pd.read_csv(traces_dir / stem / f"AVG_{stem}.csv")
+
+EXP_DIR = Path("../data/experimental")
+exp_files = sorted(EXP_DIR.glob("12-3_30_0_*.CSV"))
+exp_repeats = []
+for f in exp_files:
+    raw = pd.read_csv(f, header=None, names=["wn", "R_pct"])
+    raw = raw[raw["R_pct"] > 0].copy()
+    raw["lambda_um"] = 1e4 / raw["wn"]
+    raw["R"] = raw["R_pct"] / 100.0
+    raw = raw.sort_values("lambda_um").reset_index(drop=True)
+    exp_repeats.append((raw["lambda_um"].values, raw["R"].values))
+
+lam_sim = avg_best["x"].values
+R_stack = np.array([
+    interp1d(l, r, bounds_error=False, fill_value=np.nan, assume_sorted=True)(lam_sim)
+    for l, r in exp_repeats
+])
+R_exp_mean = np.nanmean(R_stack, axis=0)
+R_exp_std  = np.nanstd(R_stack, axis=0, ddof=1)
+
+fig, ax = plt.subplots(figsize=(8, 4.5), constrained_layout=True)
+ax.fill_between(lam_sim, R_exp_mean - R_exp_std, R_exp_mean + R_exp_std,
+                color="C2", alpha=0.20)
+ax.plot(lam_sim, R_exp_mean, color="C2", lw=2.0, label=r"$\langle R \rangle_{\mathrm{exp}}\!\pm\!\sigma$")
+ax.plot(avg_best["x"], avg_best["R_det"], color="black", lw=2.0,
+        label=rf"$\langle R_{{\mathrm{{det}}}} \rangle_{{\mathrm{{sim}}}}\;(t_{{\mathrm{{ox}}}}={best['t_oxide_um']:.2f}, \beta={best['beta_deg']:g}^{{\circ}})$")
+ax.set_xlabel(r"$\lambda \;[\mu\mathrm{m}]$")
+ax.set_ylabel(r"$R$")
+ax.set_title(r"Best Tier-1 universal — sample SS\_12-3, $\theta=30^\circ$, $\varphi_{\mathrm{exp}}=0^\circ$")
+ax.grid(True, alpha=0.4)
+ax.legend(loc="lower right", framealpha=0.85)
+plt.show()
+```
+
+# 5. Decision
+
+```{python}
+#| label: decision
+if decision_txt.exists():
+    print(decision_txt.read_text())
+else:
+    print("decision.txt not found — re-run with --resume to generate.")
+```
+
+# 6. Safety rail check
+
+```{python}
+#| label: safety-rail
+chi2_min = float(df["Rdet_chi2_red"].min())
+print(f"Best χ²_red = {chi2_min:.2f}")
+if chi2_min > 5:
+    print("\n⚠  Best χ²_red ≫ 1.  Per DISTANCE.md §6, the bottleneck is structural,")
+    print("    not in Tier-2 geometry. Most likely diagnosis: the Cr2O3 phonon model")
+    print("    (k(λ) extrapolation outside its 0.3–2.5 µm fit range — see ANALYSIS.md §4).")
+    print("    Recommendation: do not proceed to Stage 2 until this is addressed.")
+elif chi2_min > 1:
+    print("\n→ Best χ²_red is above 1 but tractable. Stage 2 (per-sample geometry) might close")
+    print("  the gap. Proceed with caution.")
+else:
+    print("\n✓ Best χ²_red ≤ 1 — simulation is consistent with experimental scatter.")
+    print("  Stage 2 (per-sample geometry refinement) will only sharpen things.")
+```

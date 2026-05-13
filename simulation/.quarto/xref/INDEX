@@ -1,0 +1,26 @@
+{
+  "exploratory/compare.qmd": {
+    "compare.html": "a6784211"
+  },
+  "sweep/reports/stage0a_report.qmd": {
+    "stage0a_report.html": "bf1b1f21"
+  },
+  "exploratory/test8_plot.qmd": {
+    "test8_plot.html": "67fab53b"
+  },
+  "sweep/reports/stage0b_report.qmd": {
+    "stage0b_report.html": "c2c75ae1"
+  },
+  "sweep/reports/stage1_report.qmd": {
+    "stage1_report.html": "d9bc358b"
+  },
+  "exploratory/inspect_sigma.qmd": {
+    "inspect_sigma.html": "f28ea823"
+  },
+  "sweep/reports/double_sin_test_report.qmd": {
+    "double_sin_test_report.html": "624b9e97"
+  },
+  "sweep/reports/validate_thetaphi_report.qmd": {
+    "validate_thetaphi_report.html": "2e123024"
+  }
+}

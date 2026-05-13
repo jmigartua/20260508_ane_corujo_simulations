@@ -1,0 +1,235 @@
+---
+title: "Simulation vs experiment — comparison and distance"
+author: "Bolu / Josu"
+date: 2026-05-08
+format:
+  html:
+    code-fold: false
+    toc: true
+    toc-depth: 3
+    embed-resources: true
+    fig-width: 12
+    fig-height: 6
+jupyter: rcwa-venv
+execute:
+  cache: false
+  echo: true
+  warning: false
+---
+
+# 0. What this document does
+
+Holds the **comparison layer** between Ane's experimental FTIR reflectance and our RCWA simulation, decoupled from the source folders:
+
+- experimental data: snapshot at [../data/experimental/](../data/experimental/) (read-only local copy, 321 CSV files)
+- simulation outputs: [./exploratory/runs/adhoc/](./exploratory/runs/adhoc/) (LX, LY, AVG)
+
+The current simulation parameters in [test8.qmd](../ane_originals/test8.qmd) — period = 12.9 µm, depth = 3.0 µm, θ = 30°, φ_sim = 89° (≡ φ_exp = 0° per Ane's note) — match nominal sample **SS_12_3 at θ = 30°, φ = 0°**, so the experimental files we look up are `12-3_30_0_{1,2,3}.CSV` (three repeats).
+
+We do four things:
+
+1. Load and average the three experimental repeats; compute pointwise std
+2. Interpolate experiment onto the simulation λ grid; restrict to overlap
+3. Overlay simulation `R`, simulation `R_det`, and experimental ⟨R⟩ ± σ
+4. Compute a scalar **distance** that we will use as the optimisation target for the configuration-space sweep (see [DISTANCE.md](../design/DISTANCE.md) for the full motivation)
+
+# 1. Setup
+
+```{python}
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from pathlib import Path
+from scipy.interpolate import interp1d
+
+EXP_DIR = Path("../data/experimental")
+SIM_DIR = Path("./exploratory/runs/adhoc")
+
+assert EXP_DIR.is_dir(), f"experimental_data not found at {EXP_DIR.resolve()}"
+assert SIM_DIR.is_dir(), f"runs/adhoc not found at {SIM_DIR.resolve()}"
+
+# What sample / geometry are we currently simulating?
+SAMPLE = "12-3"          # nominal label (period 12 µm, depth 3 µm)
+THETA  = 30
+PHI_EXP = 0              # experimental φ ≡ simulation φ = 89° per Ane's convention
+
+print(f"Comparing simulation (period=12.9 µm, depth=3.0 µm, θ={THETA}°, φ_sim=89°)")
+print(f"with experiment {SAMPLE} at θ={THETA}°, φ_exp={PHI_EXP}°")
+```
+
+# 2. Load and average the three experimental repeats
+
+```{python}
+def load_experimental_csv(path):
+    """Return (lambda_um, R) sorted by λ, with R in [0, 1] (the file is %)."""
+    raw = pd.read_csv(path, header=None, names=["wavenumber_cm1", "R_pct"])
+    # First row of every file is a sentinel (R=0) — drop it
+    raw = raw[raw["R_pct"] > 0].copy()
+    raw["lambda_um"] = 1e4 / raw["wavenumber_cm1"]
+    raw["R"] = raw["R_pct"] / 100.0
+    raw = raw.sort_values("lambda_um").reset_index(drop=True)
+    return raw["lambda_um"].values, raw["R"].values
+
+def load_repeats(sample, theta, phi_exp, exp_dir=EXP_DIR):
+    """Load all repeats for a given (sample, θ, φ). φ in the filename uses '-' for half degrees."""
+    phi_str = str(phi_exp).replace(".", "-").rstrip("0").rstrip(".") if phi_exp not in (0, 22.5, 45, 67.5, 90) \
+              else {0: "0", 22.5: "22-5", 45: "45", 67.5: "67-5", 90: "90"}[phi_exp]
+    pattern = f"{sample}_{theta}_{phi_str}_*.CSV"
+    files = sorted(exp_dir.glob(pattern))
+    assert files, f"No experimental files match {pattern} in {exp_dir}"
+    repeats = [load_experimental_csv(f) for f in files]
+    return files, repeats
+
+files, repeats = load_repeats(SAMPLE, THETA, PHI_EXP)
+print(f"Found {len(files)} experimental repeats:")
+for f in files:
+    print("   ", f.name)
+
+print(f"\nλ ranges per repeat:")
+for f, (lam, R) in zip(files, repeats):
+    print(f"   {f.name}: {lam.min():6.3f} – {lam.max():6.3f} µm  ({len(lam)} points)")
+```
+
+# 3. Common λ grid + experiment mean / std
+
+```{python}
+def average_repeats_on_grid(repeats, lam_grid):
+    """Interpolate each repeat onto lam_grid; return mean, std, sem."""
+    R_stack = []
+    for lam, R in repeats:
+        # Restrict to overlap of [lam, lam_grid]
+        f = interp1d(lam, R, bounds_error=False, fill_value=np.nan, assume_sorted=True)
+        R_stack.append(f(lam_grid))
+    R_stack = np.array(R_stack)              # (n_repeats, n_lambda)
+    R_mean = np.nanmean(R_stack, axis=0)
+    R_std  = np.nanstd(R_stack, axis=0, ddof=1)  # Bessel correction with N-1
+    R_sem  = R_std / np.sqrt(R_stack.shape[0])    # std of the mean
+    return R_stack, R_mean, R_std, R_sem
+
+# Use the simulation λ grid as our common axis (it's uniform and inside the experiment range)
+sim_avg = pd.read_csv(SIM_DIR / "AVG_35_0.9_12.9_2.0.csv")
+lam_sim  = sim_avg["x"].values        # (88,) from 3.0 to 24.75 µm
+R_sim    = sim_avg["R"].values
+Rdet_sim = sim_avg["R_det"].values
+
+R_repeats, R_exp_mean, R_exp_std, R_exp_sem = average_repeats_on_grid(repeats, lam_sim)
+valid = ~np.isnan(R_exp_mean)
+
+print(f"Simulation λ grid       : {lam_sim.min()} – {lam_sim.max()} µm, {len(lam_sim)} points")
+print(f"Experiment overlap mask : {valid.sum()} / {len(lam_sim)} points usable")
+print(f"⟨R_exp⟩  range          : {R_exp_mean[valid].min():.3f} – {R_exp_mean[valid].max():.3f}")
+print(f"σ(R_exp) range          : {R_exp_std[valid].min():.4f} – {R_exp_std[valid].max():.4f}")
+```
+
+# 4. Overlay plot
+
+```{python}
+fig, ax = plt.subplots(2, 1, figsize=(12, 8), sharex=True)
+
+# Top: total reflectance
+for i, (lam, R) in enumerate(repeats):
+    ax[0].plot(lam, R, alpha=0.3, lw=0.8, label=f"Exp repeat {i+1}")
+ax[0].plot(lam_sim[valid], R_exp_mean[valid], 'k-', lw=2, label="Exp ⟨R⟩")
+ax[0].fill_between(lam_sim[valid],
+                   R_exp_mean[valid] - R_exp_std[valid],
+                   R_exp_mean[valid] + R_exp_std[valid],
+                   color='gray', alpha=0.25, label="Exp ⟨R⟩ ± σ")
+ax[0].plot(lam_sim, R_sim, 'b-', lw=2, label="Sim R total (LX+LY)/2")
+ax[0].plot(lam_sim, Rdet_sim, 'r--', lw=2, label="Sim R_det β=2° (LX+LY)/2")
+ax[0].set_ylabel("Reflectance")
+ax[0].set_title(f"Sample {SAMPLE}, θ={THETA}°, φ_exp={PHI_EXP}° (φ_sim=89°)  —  experiment vs RCWA")
+ax[0].legend(loc='lower right', fontsize=9)
+ax[0].grid(True)
+
+# Bottom: residual (sim - exp) — using R_det because that's what's physically aperture-matched
+residual_R    = R_sim    - R_exp_mean
+residual_Rdet = Rdet_sim - R_exp_mean
+ax[1].axhline(0, color='k', lw=0.5)
+ax[1].plot(lam_sim, residual_R,    'b-', lw=1, label='Sim R − Exp ⟨R⟩')
+ax[1].plot(lam_sim, residual_Rdet, 'r-', lw=1, label='Sim R_det − Exp ⟨R⟩')
+ax[1].fill_between(lam_sim[valid],
+                   -R_exp_std[valid], +R_exp_std[valid],
+                   color='gray', alpha=0.25, label='±σ_exp envelope')
+ax[1].set_xlabel("λ (µm)")
+ax[1].set_ylabel("Residual")
+ax[1].legend(loc='upper right', fontsize=9)
+ax[1].grid(True)
+
+plt.tight_layout()
+plt.show()
+```
+
+# 5. The distance metric
+
+We adopt **reduced chi-squared with a noise floor**:
+
+$$
+\chi^{2}_{\text{red}} \;=\; \frac{1}{N - k}\, \sum_{i=1}^{N} \left( \frac{R_{\text{sim}}(\lambda_i) \;-\; \langle R_{\text{exp}}(\lambda_i) \rangle}{\max\bigl(\sigma_{\bar R}(\lambda_i),\, \sigma_{\text{floor}}\bigr)} \right)^{\!2}
+$$
+
+with
+
+- $N$ = number of overlap points (valid mask)
+- $k$ = number of free parameters being optimised in the configuration-space sweep (here 0 — we are *evaluating* a single configuration, not fitting; for the sweep itself, set $k$ to the number of swept axes)
+- $\langle R_{\text{exp}} \rangle$, $\sigma_{\bar R}$ = experimental mean and standard error of the mean over the 3 repeats
+- $\sigma_{\text{floor}} = 0.01$ — a 1% absolute floor that prevents bins where 3 repeats happen to coincide from spuriously dominating the sum (3-sample sigmas are noisy; the floor encodes our prior that no FTIR bin is truly more precise than ~1%)
+
+A χ²_red ≈ 1 means simulation deviates from experiment by about one experimental standard deviation per bin on average — i.e. the simulation is consistent with experimental noise. χ²_red ≫ 1 means systematic disagreement; ≪ 1 means we are over-fitting (only relevant when we are actually fitting). For the sweep, **smaller χ²_red is better.**
+
+We report it both for `R_total` (what FTIR really measures if its detector is hemispherical) and for `R_det` (what FTIR measures if its detector is a narrow cone). The two bracket the truth; whichever is closer to χ²_red ≈ 1 hints at the right detector model.
+
+We also report RMSE (√⟨residual²⟩), MAE (⟨|residual|⟩), max |residual|, and Pearson r — easy to read but they ignore experimental uncertainty.
+
+```{python}
+SIGMA_FLOOR = 0.01
+K_FREE = 0  # we are scoring a single configuration, not fitting
+
+def distance_metrics(R_sim, R_exp_mean, R_exp_sem, valid, sigma_floor=SIGMA_FLOOR, k=K_FREE):
+    s = R_sim[valid]
+    e = R_exp_mean[valid]
+    sem = R_exp_sem[valid]
+    sigma_eff = np.maximum(sem, sigma_floor)
+    residual = s - e
+
+    N = len(residual)
+    chi2 = np.sum((residual / sigma_eff)**2)
+    chi2_red = chi2 / max(N - k, 1)
+
+    return {
+        "N":          N,
+        "chi2":       chi2,
+        "chi2_red":   chi2_red,
+        "RMSE":       float(np.sqrt(np.mean(residual**2))),
+        "MAE":        float(np.mean(np.abs(residual))),
+        "max_abs":    float(np.max(np.abs(residual))),
+        "pearson_r":  float(np.corrcoef(s, e)[0, 1]),
+        "mean_sigma": float(np.mean(sigma_eff)),
+    }
+
+m_R    = distance_metrics(R_sim,    R_exp_mean, R_exp_sem, valid)
+m_Rdet = distance_metrics(Rdet_sim, R_exp_mean, R_exp_sem, valid)
+
+print("Sim R (total)  vs  ⟨R_exp⟩:")
+for k, v in m_R.items():    print(f"  {k:11s} = {v:.4f}" if isinstance(v, float) else f"  {k:11s} = {v}")
+print()
+print("Sim R_det β=2° vs  ⟨R_exp⟩:")
+for k, v in m_Rdet.items(): print(f"  {k:11s} = {v:.4f}" if isinstance(v, float) else f"  {k:11s} = {v}")
+```
+
+# 6. One-line scalar — the optimisation target
+
+For the configuration-space sweep we record **one number per simulation run** — the χ²_red against ⟨R_exp⟩, computed using the simulation observable that best matches the FTIR detector geometry. By default we use `R_det` with the β chosen to match the detector cone; if the detector is hemispherical, swap in `R_total`.
+
+```{python}
+distance_for_sweep = m_Rdet["chi2_red"]   # change to m_R["chi2_red"] if FTIR detector is hemispherical
+print(f"\nDISTANCE (single scalar for the sweep) = χ²_red(R_det vs ⟨R_exp⟩) = {distance_for_sweep:.3f}")
+```
+
+# 7. Notes on the upcoming configuration-space sweep
+
+The point of this metric is to be a **drop-in objective** for batch parameter sweeps. The full plan and discussion are in [DISTANCE.md](../design/DISTANCE.md). In short:
+
+- Each simulation run produces an `AVG_*.csv` (the polarisation average) keyed by its parameter vector
+- A loader function (this notebook) reads that CSV, picks the matching experimental triple, and returns one number — `χ²_red`
+- A sweep driver picks parameter combinations, runs the simulation, scores it, and aggregates results into a `sweep_results.csv` with one row per configuration — that is the *configuration-space cube* you described
+- Visualisation: heatmaps in 2-D slices (e.g. period × depth at fixed t_oxide), parallel-coordinate plots, or a 3-D scatter coloured by χ²_red
