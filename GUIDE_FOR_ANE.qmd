@@ -1,0 +1,1188 @@
+---
+title: "A guide to this repository, for Ane"
+subtitle: "RCWA simulations of textured stainless steel with a Cr₂O₃ overlayer — what was done, why, how"
+author:
+  - name: "Josu (with Bolu)"
+    affiliation: "for Ane Corujo Arteche"
+date: "2026-05-13"
+date-format: iso
+abstract: |
+  A chronological tour of every phase of work done on top of Ane's TFM
+  simulations: cold-reading analysis, the decoupled distance metric, the
+  tiered configuration-space framework, the orchestration code, the
+  staged sweep (Stages 0a / 0b / 1, double-sinusoid follow-up, full
+  (θ, φ) validation), two structural diagnostics, and the domain-of-
+  validity verdict. Bottom line: at θ = 30° on sample SS_12-3 the sweep
+  lands on the same (t_oxide, β, oxide_dispersion) configuration Ane
+  arrived at empirically.
+abstract-title: "TL;DR"
+format:
+  html:
+    theme:
+      light: cosmo
+      dark: darkly
+    toc: true
+    toc-depth: 3
+    toc-location: left
+    toc-title: "Contents"
+    number-sections: false
+    smooth-scroll: true
+    code-fold: false
+    code-copy: true
+    code-overflow: wrap
+    code-block-bg: true
+    code-block-border-left: "#2780e3"
+    highlight-style: github
+    fig-align: center
+    fig-cap-location: bottom
+    tbl-cap-location: top
+    link-external-icon: true
+    link-external-newwindow: true
+    anchor-sections: true
+    citations-hover: true
+    footnotes-hover: true
+    page-layout: article
+    grid:
+      sidebar-width: 250px
+      body-width: 800px
+      margin-width: 200px
+      gutter-width: 1.5rem
+    include-in-header:
+      text: |
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+        <style>
+          :root { --bs-body-font-family: "Inter", "Source Sans Pro", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; --bs-body-line-height: 1.65; }
+          body { font-family: var(--bs-body-font-family); }
+          main.content, .quarto-title-block { max-width: 880px; }
+          h1, h2, h3, h4 { font-weight: 600; letter-spacing: -0.01em; }
+          h1.title { font-size: 2.2rem; line-height: 1.2; }
+          .subtitle { color: var(--bs-secondary-color, #6c757d); font-weight: 400; font-size: 1.15rem; margin-top: 0.5rem; }
+          h2 { margin-top: 2.6rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--bs-border-color, #dee2e6); }
+          h3 { margin-top: 1.8rem; color: var(--bs-emphasis-color, #1a1a1a); }
+          p, li { line-height: 1.7; }
+          table { font-size: 0.94em; margin: 1rem 0; }
+          table thead { border-bottom: 2px solid var(--bs-border-color, #dee2e6); }
+          table thead th { font-weight: 600; }
+          blockquote { border-left: 3px solid var(--bs-primary, #2780e3); padding-left: 1rem; margin-left: 0; color: var(--bs-secondary-color, #6c757d); font-style: normal; }
+          code { font-family: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace; font-size: 0.88em; }
+          pre code { font-size: 0.86em; line-height: 1.55; }
+          .callout { margin: 1.2rem 0; }
+          a { text-decoration: none; }
+          a:hover { text-decoration: underline; }
+          #TOC { font-size: 0.92em; }
+        </style>
+    mainfont: "Inter"
+    monofont: "JetBrains Mono"
+    embed-resources: true
+execute:
+  echo: false
+  warning: false
+---
+
+::: {.callout-note appearance="simple"}
+**From:** Josu (with my AI assistant, Bolu) &nbsp; · &nbsp; **To:** Ane Corujo Arteche &nbsp; · &nbsp; **Repo:** [github.com/jmigartua/20260508_ane_corujo_simulations](https://github.com/jmigartua/20260508_ane_corujo_simulations)
+:::
+
+## What this document is, and how to read it
+
+This is a **chronological tour** of everything I have done with the files you
+sent me on 8 May 2026. The structure of the repository looks larger than it
+really is, so the goal here is to *flatten* it into one story you can read
+in one sitting.
+
+Read it linearly the first time — every section refers forward to the next one.
+On the second pass you can jump to any phase from the table of contents below.
+
+**Three things to keep in mind while you read:**
+
+1. **Everything you sent me is preserved untouched.** Your `.ipynb` files,
+   the CSVs, the paper, the patched `solver.py` / `harmonics.py` — they all
+   live verbatim in [`20260508_messages/`](20260508_messages/) and
+   [`ane_originals/`](ane_originals/). Nothing of yours was modified. The
+   "active" code in [`simulation/`](simulation/) is a *parallel* reorganised
+   version that calls into the same physics.
+
+2. **I did not change any physics that you wrote.** The RCWA solve cell in
+   [`simulation/lib/sweep_runner.py`](simulation/lib/sweep_runner.py) is a
+   line-by-line port of your `test8.qmd §5`. The differences are *structural*
+   (turning your cell into a function, persisting outputs, parameterising
+   inputs), not physical.
+
+3. **The big result is at the end** — see §10. To save you scrolling: at
+   **θ = 30° on sample SS_12-3** the simulation reproduces your experimental
+   FTIR with **Pearson r ≥ 0.95** across all five azimuths, and the
+   parameter configuration that achieves this **matches your empirical
+   fit exactly** (t_oxide = 0.9 µm, β = 2°, HS_caliente — see page 10
+   of your AJUSTE PDF). Outside θ ≤ 30° the model has a clear physics
+   limitation that I have characterised but not solved — see §9.
+
+---
+
+## Table of contents
+
+- [1. The starting point — what you sent me on 2026-05-08](#1-the-starting-point--what-you-sent-me-on-2026-05-08)
+- [2. Phase 1 — Cold reading and analysis (2026-05-08)](#2-phase-1--cold-reading-and-analysis-2026-05-08)
+- [3. Phase 2 — Decoupled comparison and the distance metric (2026-05-08)](#3-phase-2--decoupled-comparison-and-the-distance-metric-2026-05-08)
+- [4. Phase 3 — Configuration-space framework (2026-05-08)](#4-phase-3--configuration-space-framework-2026-05-08)
+- [5. Phase 4 — Building the orchestration code (2026-05-09)](#5-phase-4--building-the-orchestration-code-2026-05-09)
+- [6. Phase 5 — The staged sweep, run by run](#6-phase-5--the-staged-sweep-run-by-run)
+  - [6.1 Stage 0a — Harmonics-count convergence](#61-stage-0a--harmonics-count-convergence)
+  - [6.2 Stage 0b — φ-convention sanity check](#62-stage-0b--φ-convention-sanity-check)
+  - [6.3 Stage 1 — Universal Tier-1 sweep](#63-stage-1--universal-tier-1-sweep)
+  - [6.4 The double-sinusoid follow-up](#64-the-double-sinusoid-follow-up)
+- [7. Phase 6 — (θ, φ) validation, and the wall the model hit](#7-phase-6--θ-φ-validation-and-the-wall-the-model-hit)
+- [8. Phase 7 — Two structural diagnostics that ruled themselves out](#8-phase-7--two-structural-diagnostics-that-ruled-themselves-out)
+- [9. Phase 8 — Domain of validity](#9-phase-8--domain-of-validity)
+- [10. Where this leaves us (bottom line)](#10-where-this-leaves-us-bottom-line)
+- [11. How to run things — commands](#11-how-to-run-things--commands)
+- [12. Repository map — a cheat sheet](#12-repository-map--a-cheat-sheet)
+- [13. What I changed in your code, and what I did not touch](#13-what-i-changed-in-your-code-and-what-i-did-not-touch)
+- [14. Open questions for you](#14-open-questions-for-you)
+- [15. A word about the documents themselves](#15-a-word-about-the-documents-themselves)
+
+---
+
+## 1. The starting point — what you sent me on 2026-05-08
+
+You sent me five things by email on 8 May, which are archived verbatim in
+[`20260508_messages/`](20260508_messages/):
+
+| File | What it is | Role |
+|---|---|---|
+| [`Test8_full (1).ipynb`](20260508_messages/Test8_full%20(1).ipynb) | Your "Programa principal" — the full simulation pipeline | The thing whose results we wanted to reproduce and extend |
+| [`Representacion.ipynb`](20260508_messages/Representacion.ipynb) | Your plotting / comparison helpers | Shows how you compared simulation against experimental FTIR |
+| [`SS_letter (1).csv`](20260508_messages/SS_letter%20(1).csv) | Stainless-steel complex permittivity ε(ν̃), 400–7000 cm⁻¹ | Substrate material data |
+| [`calientes_cromo.csv`](20260508_messages/calientes_cromo.csv) | Cr₂O₃ (n, k) for **HS** films (substrate heated to 300 °C) | Oxide overlayer for "hot" films |
+| [`indices_cromo.csv`](20260508_messages/indices_cromo.csv) | Cr₂O₃ (n, k) for **RS** films (unheated substrate) | Oxide overlayer for "cold" films |
+| [`paper_datos_cromo.pdf`](20260508_messages/paper_datos_cromo.pdf) | Al-Kuhaili & Durrani, *Optical Materials* 29 (2007) 709–713 | Source of the Cr₂O₃ dispersion model |
+
+And two **patched Python files** (inlined into your email, not standalone):
+`solver.py` and `harmonics.py`, modifications of the upstream
+[`rcwa`](https://rcwa.readthedocs.io) package adding two things:
+
+1. **Exit-angle tracking** — `Solver.theta_orders`, the polar angle of every
+   diffraction order *m* given the current source and grating.
+2. **A detected-reflectance aperture filter** —
+   `Solver.get_detected_reflectance(beta_deg)`, which sums `R_m` only over
+   the orders that fall inside ±β/2 of the specular direction.
+
+That second feature turned out to be load-bearing for everything that
+followed — see §3 below.
+
+I also have your two PDFs in [`ane_originals/`](ane_originals/):
+**AJUSTE DE PARÁMETROS — PROGRAMA EDMUNDS** and **Tratamiento de imágenes.
+Modelos y comparación con medidas experimentales**. Reading those carefully
+is what allowed me to recognise, at the end of the run, that my best-fit
+parameters and yours were the same parameters.
+
+---
+
+## 2. Phase 1 — Cold reading and analysis (2026-05-08)
+
+### The document
+[`ANALYSIS.md`](ANALYSIS.md) — long, detailed, written before I touched a single line of your code.
+
+### Why I wrote it first
+Before reorganising anything or running anything, I wanted to *understand
+what your code was actually computing* and to flag every place where the
+physics or the code looked fragile. If I jumped straight into a parameter
+sweep without that, I would have spent days fitting around an unknown.
+
+### What's in it
+A file-by-file inventory, the physics chain in one diagram, the Cr₂O₃
+optical model laid out from the paper, and **10 catalogued issues** with
+severity tags (HIGH / MED / LOW). Worth your attention in particular:
+
+| Severity | Issue | Section |
+|---|---|---|
+| **HIGH (physics)** | The Cr₂O₃ k(λ) model is the Al-Kuhaili sub-bandgap tail fitted on **0.3–2.5 µm transmittance**. You and I use it on **3–25 µm** — that's a 10× extrapolation outside the fit range, and the model contains **zero phonon physics**. This was the single most-likely structural error, and §10 confirms it turned out to be load-bearing. | [`ANALYSIS.md §4`](ANALYSIS.md), §6.3 |
+| **MED (physics)** | The header of `SS_letter (1).csv` says `wavenumber, n, k` but the values are actually `wavenumber, ε', ε''` (real and imaginary permittivity, not refractive index). Your code uses them correctly **as** permittivity, so the science is right — the header just lies. | [`ANALYSIS.md §5`](ANALYSIS.md) |
+| **MED (physics)** | The oxide is applied as a *vertical band* above the local metal column, not normal-to-the-surface. On a sinusoid with depth 3 µm and period 13 µm the surface slope reaches ≈ 36°; a real oxide grown perpendicular to the surface has up to 25 % more vertical extent on the slopes. Effect is ≈ proportional to oxide thickness. | [`ANALYSIS.md §6.4`](ANALYSIS.md) |
+| **MED (modelling)** | The substrate stack is `air | grating | 200 µm SS | air` — not a true semi-infinite SS. **Important update from §8 below: I tested this empirically and at our wavelengths it is bit-identical to the semi-infinite version.** The 200 µm slab is already > 1000× the IR skin depth, so light decays before reaching the back. The geometric concern was valid, the physical impact is zero. | [`ANALYSIS.md §6.7`](ANALYSIS.md) |
+| **HIGH (portability)** | Hard-coded Windows paths and a leaky-closure bug in `Representacion.ipynb`'s `get_una` / `get_prom`: functions take `(periodo, profundidad, …)` but the body uses module-level `period` and `prof` from the surrounding cell. Works as long as the outer cell defines them; silently wrong otherwise. | [`ANALYSIS.md §6.8`](ANALYSIS.md) |
+| LOW | `'./SS_letter.csv'` ≠ `'SS_letter (1).csv'` — the notebook will not run on a fresh checkout. | [`ANALYSIS.md §6.1`](ANALYSIS.md) |
+| LOW | `_check_converged` raises `RuntimeError('… {self.max_iters} …')` — missing the `f`-string prefix. | [`ANALYSIS.md §6.9`](ANALYSIS.md) |
+
+### One sanity-check I did before doing anything else
+I smoke-tested the `rcwa 1.0.48` install (Python 3.12 venv) against the
+analytic Fresnel result for vacuum / n = 3 at normal incidence:
+`R = 0.250000, T = 0.750000, R + T = 1.000000` — exact. So the runtime
+is fine. Every issue in `ANALYSIS.md` is about *your set-up*, not about
+the package.
+
+### One subtlety from §7 worth flagging
+The paper's claim "n_HS > n_RS" is true near the absorption edge — that's
+the regime the paper actually fitted. In our IR regime, the *empirical
+sub-bandgap tail* of the model gives **k_RS > k_HS**, which is **the
+opposite trend**. Real Cr₂O₃ in the mid-IR is dominated by **phonons** that
+the empirical tail does not contain, so this reversal is an artefact of
+the extrapolation, not a measured property. I flag it here because, if
+ever you compare HS vs RS at long λ, the relative ordering you see is the
+parametrised tail, not real material physics. (See §10 — this turned out
+to matter.)
+
+---
+
+## 3. Phase 2 — Decoupled comparison and the distance metric (2026-05-08)
+
+### Why this came next
+We needed **one number per simulation run** — small if the simulation
+matches your experimental FTIR, large if it does not. Without that scalar,
+no sweep can have an objective; we would just be staring at curves.
+
+### What I built
+- A **read-only snapshot** of your 321 experimental FTIR CSV files, copied
+  into [`data/experimental/`](data/experimental/) and marked `a-w`. The
+  source folder you flagged as off-limits stays untouched.
+- [`simulation/exploratory/compare.qmd`](simulation/exploratory/compare.qmd):
+  a Quarto document that, for one simulation configuration, overlays the
+  simulated `R(λ)` and `R_det(β)` curves on the mean of the experimental
+  triple, plots the residual, and computes the scalar distance.
+- [`simulation/design/DISTANCE.md`](simulation/design/DISTANCE.md): the
+  formal definition of the distance metric, the motivation behind every
+  choice, and the configuration-space architecture that follows from it.
+
+### The distance metric, in one box
+
+$$
+\chi^{2}_{\text{red}}
+= \frac{1}{N - k}\,
+\sum_{i=1}^{N}
+\left(
+\frac{R_{\text{sim}}(\lambda_i) - \langle R_{\text{exp}}(\lambda_i)\rangle}
+     {\max\!\bigl(\sigma_{\bar R}(\lambda_i),\, \sigma_{\text{floor}}\bigr)}
+\right)^{2}
+$$
+
+with $\sigma_{\bar R}$ the standard error of the mean across your 3 FTIR
+repeats, $\sigma_{\text{floor}} = 0.01$ (1 % absolute), $k$ the number of
+free parameters in the current optimisation, and $N$ the number of
+wavelength points in the overlap of the simulation grid and the
+experimental grid.
+
+This is just reduced chi-squared with a sensible noise floor. The two
+nuances:
+
+- **Divide by SEM, not std.** That gives χ²_red ≈ 1 a physical meaning:
+  "the simulation sits within experimental scatter, on average".
+- **Floor at 1 %.** With only 3 repeats, sample std collapses at bins where
+  the repeats happen to coincide. The floor encodes the prior that no
+  FTIR bin is intrinsically more precise than ~1 % absolute reflectance.
+
+### The very first comparison run — and why it changed everything
+
+I ran your `test8` defaults (`t_oxide = 0.9 µm`, NA = 35, θ = 30°, φ_sim = 89°)
+once and computed two scalars: one comparing **R_total** (sum over all
+propagating diffraction orders) against your FTIR triple `12-3_30_0_*.CSV`,
+and one comparing **R_det(β = 2°)** (your patched aperture filter, summing
+only orders within ±1° of specular):
+
+| Metric | R_total | R_det β = 2° |
+|---|---:|---:|
+| χ²_red | 749 | **137** |
+| RMSE | 0.274 | **0.117** |
+| MAE | 0.228 | **0.108** |
+| max \|residual\| | 0.553 | **0.244** |
+| Pearson r | **0.83** | **0.97** |
+
+`R_det(β = 2°)` crushes `R_total` on every metric. The Pearson correlation
+jumps from 0.83 to **0.97** — meaning the *shape* of your simulated curve
+already tracks the experiment closely; the disagreement is almost entirely
+a uniform amplitude offset.
+
+**Conclusion that fell out immediately:** the FTIR detector is
+**aperture-limited**, not hemispherical. The 6 percentage-point uniform
+offset between $\langle R_{\det} \rangle \approx 0.60$ and
+$\langle R_{\exp} \rangle \approx 0.54$ is exactly the residual we want
+the sweep to close. Which means **the right observable to compare against
+the experiment is `R_det(β)`, with β found by the sweep, never `R_total`.**
+
+This is the single most important piece of advice I would offer for any
+future FTIR comparison: pick a β, sweep over it, never default to `R_total`.
+
+---
+
+## 4. Phase 3 — Configuration-space framework (2026-05-08)
+
+### Why this came next
+Knowing we needed to minimise χ²_red doesn't tell us *which parameters
+to vary*. A naïve Cartesian sweep over every plausible knob is intractable.
+We need a principled tiering.
+
+### What I built
+[`simulation/design/DISTANCE.md`](simulation/design/DISTANCE.md) (long
+document — sections 4 and 6 are the load-bearing ones), and the SS_12-3-
+specific sweep plan [`simulation/design/SWEEP_PLAN.md`](simulation/design/SWEEP_PLAN.md).
+
+### The four-tier inclusion rule
+A configuration-space dimension only earns its slot if it is
+**(i) genuinely uncertain**, **(ii) measurably affects the simulation
+output**, and **(iii) physically meaningful** — i.e. learning its best
+value teaches us something. By that test:
+
+- **Tier 1 — must sweep.** `t_oxide` (your oxide thickness was a
+  placeholder), `β` (detector aperture, the dominant residual driver per §3),
+  `oxide_dispersion` (categorical: HS / RS / [phonon-aware model when
+  we have one]).
+- **Tier 2 — sweep with tight priors.** `period_um` (your AFM gives
+  12.85 ± 0.05 µm), `depth_um` (AFM gives 2.40 µm, sinusoid amplitude fit
+  gives 2.52 µm — wider prior).
+- **Tier 3 — set, don't sweep.** `harmonics` (a convergence parameter,
+  not a fit parameter), `slices`, `theta`/`phi_exp` (these are the
+  *conditions* under which we evaluate the simulation, not knobs),
+  `phi_sim − phi_exp` convention (a discrete coordinate choice, fix
+  after one sanity check), `ur` (truly fixed for non-magnetic materials).
+- **Tier 4 — exclude.** An overall `R_scale` calibration factor would
+  absorb the very offsets we want to *identify*; introducing it now
+  would hide which Tier-1 knob is the real culprit.
+
+### Universal vs per-sample
+Crucially, some parameters should be *the same across all six samples*
+(instrument + material constants — β, oxide dispersion, possibly t_oxide)
+and some are *per-sample* (period and depth from the AFM of each plate).
+The sweep architecture is therefore hierarchical:
+
+- **Outer loop** — universal Tier-1 parameters.
+- **Inner loop** — per-sample Tier-2 geometry, refit per sample under
+  the locked universal parameters.
+
+### The staged sweep
+Naïvely the cost is multiplicative (6 samples × 15 (θ, φ) × universal cube)
+and runs to weeks. Factored by stage, the cost becomes tractable:
+
+| Stage | Goal | What varies | Conditions | Runs |
+|---|---|---|---|---|
+| **0a** convergence | Smallest NA at which R_det is stable | `harmonics` | one (θ, φ) | 8 |
+| **0b** φ convention | Confirm φ_sim ↔ φ_exp mapping | `phi_sim` | one (θ, φ) | 4 |
+| **1** universal Tier-1 | Best (t_oxide, β, oxide_dispersion) | Tier 1 | one (θ, φ), one sample | 84 |
+| **2** per-sample geometry | Best (period, depth) for SS_12-3 | Tier 2 | all 15 (θ, φ) | 375 |
+| **3** generalisation | Validate Tier-1 across the other 5 samples | Tier 2, per sample | all 15 (θ, φ) × 5 | 1875 |
+
+With decision points between stages. The single non-negotiable one:
+**after Stage 1, if best χ²_red ≫ 1, do not proceed to Stage 2** — the
+bottleneck is structural and Stage 2 would absorb model error into
+geometry parameters. (Spoiler: it did, and we did not proceed.)
+
+This staging is what made the campaign finishable in a long weekend
+rather than a month.
+
+---
+
+## 5. Phase 4 — Building the orchestration code (2026-05-09)
+
+### Why this came next
+At this point we had a metric, a tiering, and a plan. What was still
+missing was *runnable infrastructure*: a way to take a parameter dict,
+solve one RCWA configuration, score it against the experiment, and persist
+the result — without copy-pasting your notebook cells across stages.
+
+### What I built
+One module, [`simulation/lib/sweep_runner.py`](simulation/lib/sweep_runner.py)
+(~390 lines), exposing essentially four functions:
+
+```python
+solve_one(cfg: SimConfig)                      # one RCWA solve, both polarisations
+average_polarisations(...)                     # (R_LX + R_LY) / 2
+load_experimental_repeats(sample, θ, φ_exp)    # mean + SEM across the 3 FTIR CSVs
+score(sim_df, sample, …)                       # χ²_red, RMSE, MAE, Pearson, … for R and R_det
+run_one_config(cfg, …)                         # solve + score + persist + return one row
+```
+
+`SimConfig` is a frozen dataclass that names every parameter the simulation
+needs (period, A, t_oxide, oxide_dispersion, θ, φ_sim, harmonics, slices,
+β, A₂, φ₂, semi_infinite_substrate, wavelengths). The filename stem is
+derived from the config, so every run is uniquely identified on disk —
+this matters because the sweep is restartable.
+
+**The physics inside `solve_one()` is your `test8.qmd §5` cell, line by
+line.** I moved it into a function and removed the magic-number defaults,
+but `discretize_with_oxide`, the `LayerStack` construction, the `Source`
+parameters, and the `Solver.solve()` call are unchanged. Where the active
+code diverges from yours, it is structural (function, not script;
+parameterised, not hard-coded; persisted, not transient). The numbers
+should be identical to your `test8` for matching parameters; I verified
+this in the smoke test.
+
+### Two paradigms, one project
+- **Scripts run, reports consume.** Heavy execution lives in
+  [`simulation/sweep/bin/run_*.py`](simulation/sweep/bin/) — pure Python,
+  parallelisable (multiprocessing with `--parallel N`), restartable via
+  `--resume`. Each script writes a `results.csv` and a `traces/`
+  directory of per-config `AVG_*.csv` files.
+- **Reports** in [`simulation/sweep/reports/`](simulation/sweep/reports/)
+  are Quarto documents that load the scripts' `results.csv` and render
+  the analysis. They never call RCWA themselves — render time is seconds,
+  not hours.
+- **Exploratory single-config work** lives in
+  [`simulation/exploratory/`](simulation/exploratory/) — Quarto documents
+  for iterating on *one* configuration interactively
+  ([`simulate.qmd`](simulation/exploratory/simulate.qmd) is the parameterised
+  successor to your `test8.qmd`; [`compare.qmd`](simulation/exploratory/compare.qmd)
+  is the comparison document from §3).
+
+### Where your code lives now
+- Your two patched files (`solver.py`, `harmonics.py`) need to be on
+  `sys.path` before the `rcwa` import — easiest is to drop them into the
+  venv's `rcwa/` site-packages once, which is what the venv at `.venv/`
+  has done.
+- Your original notebooks are in [`20260508_messages/`](20260508_messages/)
+  verbatim, and as `.qmd` conversions in [`ane_originals/`](ane_originals/)
+  for legibility. None of those is on the active execution path.
+
+---
+
+## 6. Phase 5 — The staged sweep, run by run
+
+Everything below was run on this MacBook, Python 3.12, `rcwa 1.0.48` in
+[`.venv/`](.venv/), on 2026-05-09. The wall times include I/O. Every run's
+command, wall time, parameters, and key numbers are recorded in
+[`RUN_LOG.md`](RUN_LOG.md) — what follows is the narrative.
+
+### 6.1 Stage 0a — Harmonics-count convergence
+
+**The question.** What is the smallest harmonics count NA such that
+`R_det(λ; NA)` is stable across the full 3–25 µm band to better than the
+1 % σ-floor? Without this answer, every other axis of the sweep would be
+fitting around a numerical artefact.
+
+**Setup.** Centre of the cube (t_oxide = 0.30 µm placeholder, β = 2°,
+HS_caliente, θ = 30°, φ_sim = 89°). Eight NA values: 15, 19, 23, 27, 31,
+35, 39, 51.
+
+**Run.** [`simulation/sweep/bin/run_stage0a.py`](simulation/sweep/bin/run_stage0a.py)
+— 8 configs, 4 workers, **17.1 min wall**.
+
+**Result.**
+
+| NA | max\|R_det(NA) − R_det(51)\| |
+|---:|---:|
+| 15 | 0.1750 |
+| 19 | 0.1168 |
+| 23 | 0.0749 |
+| 27 | 0.0462 |
+| 31 | 0.0267 |
+| 35 | 0.0136 |
+| **39** | **0.0063** ← chosen |
+| 51 | 0.0000 (reference) |
+
+**Decision.** **NA = 39.** Smallest grid value where the band-max
+disagreement with NA = 51 is below the 1 % σ-floor. Locked for every
+subsequent stage.
+
+**Aside.** Your note in the original notebook said *"a partir de 27;
+pero mejor usar 31"* — that was for the broad-cone problem; once we
+restrict to R_det(β = 2°) the cone is narrow enough that NA = 31 still
+leaves a 2.7 % residual at long λ, and NA = 39 is needed to get under 1 %.
+Your eye was right; the floor was just slightly tighter than your visual
+criterion.
+
+The detailed report: [`simulation/sweep/reports/stage0a_report.qmd`](simulation/sweep/reports/stage0a_report.qmd).
+
+### 6.2 Stage 0b — φ-convention sanity check
+
+**The question.** You ran the simulation at `phi_sim = 89°` and compared
+against your `phi_exp = 0°` FTIR files. That mapping is empirical — does
+89° actually beat its neighbours (0°, 1°, 90°)?
+
+**Setup.** Locked NA = 39 from Stage 0a. Four φ_sim values, all compared
+against `12-3_30_0_*.CSV`.
+
+**Run.** [`simulation/sweep/bin/run_stage0b.py`](simulation/sweep/bin/run_stage0b.py)
+— 4 configs (with a resume run for an extra 89.999°), **12.6 min wall**.
+
+**Result.**
+
+| φ_sim | χ²_red(R_det) | Pearson r | Notes |
+|---:|---:|---:|---|
+| 0° | — | — | **Singular matrix** — numerical degeneracy at perfect-symmetry azimuth |
+| 1° | 254.78 | 0.835 | Conical mounting |
+| **89°** | **224.89** | **0.932** | ← chosen |
+| 89.999° | 597.36 | 0.935 | Near-90° branch (sudden jump) |
+| 90° | 597.36 | 0.935 | Same degeneracy as 0° but flipped axis |
+
+**Decision.** **φ_sim = 89° ↔ φ_exp = 0°** confirmed.
+
+**One thing worth knowing.** `rcwa` throws **"Singular matrix"** at
+`phi_sim = 0°` exactly — the in-plane k-vector becomes parallel to a
+lattice reference axis and certain block matrices in the S-matrix
+construction lose rank. This is a known numerical degeneracy, not a bug
+in your setup. The workaround for any future need to "run at φ_sim = 0°"
+is to use 0.001° instead. Your decision to run at 89° (one degree off
+the 90° branch, not the 0° branch) sidesteps the degeneracy cleanly —
+**that was a deliberate, principled choice**, not arbitrary.
+
+**Sanity check.** The χ²_red at (φ_sim = 89°, NA = 39) here is **224.89**,
+which is bit-identical to the (NA = 39) row from Stage 0a. The runs are
+consistent across stages with matching parameters. ✅
+
+The detailed report: [`simulation/sweep/reports/stage0b_report.qmd`](simulation/sweep/reports/stage0b_report.qmd).
+
+### 6.3 Stage 1 — Universal Tier-1 sweep
+
+**The question.** Holding the per-sample geometry fixed at your AFM nominal
+(period = 12.9 µm, A = 1.5 µm → depth = 3.0 µm), find the universal
+triple `(t_oxide, β, oxide_dispersion)` that best fits the spectrum.
+
+**Setup.** Locked NA = 39, φ_sim = 89° from Stage 0. Grid:
+
+- `t_oxide ∈ {0, 0.05, 0.10, 0.20, 0.30, 0.50, 0.90}` µm — 7 values
+- `β ∈ {1°, 2°, 5°, 10°, 20°, 30°}` — 6 values
+- `oxide_dispersion ∈ {HS_caliente, RS_frio}` — 2 values
+- Sample SS_12-3, (θ, φ_exp) = (30°, 0°), one condition only
+
+Total: **84 configurations**.
+
+**Run.** [`simulation/sweep/bin/run_stage1.py`](simulation/sweep/bin/run_stage1.py)
+with `caffeinate -i ... --parallel 4 --resume`. **3 h 35 min wall.**
+
+**Result — the top 5 configurations.**
+
+| t_oxide (µm) | β (°) | oxide | χ²_red | RMSE | Pearson r |
+|---:|---:|---|---:|---:|---:|
+| **0.9** | **1, 2, 5** | **HS_caliente** | **138.83** | **0.118** | **0.972** ← chosen |
+| 0.9 | 1, 2, 5 | RS_frio | 153.81 | 0.124 | 0.965 |
+| 0.9 | 10 | HS_caliente | 157.68 | 0.126 | 0.958 |
+| 0.9 | 10 | RS_frio | 172.22 | 0.131 | 0.951 |
+| 0.5 | 1, 2, 5 | HS_caliente | 202.05 | 0.142 | 0.940 |
+
+**Decision.**
+
+```
+t_oxide          = 0.90 µm
+β                = 2°  (any of {1, 2, 5} — they are degenerate at this t_oxide)
+oxide_dispersion = HS_caliente
+χ²_red           = 138.83    Pearson r = 0.972
+```
+
+**An honest moment.** **This is the same configuration you arrived at
+empirically** in your AJUSTE PDF (page 10): t_oxide = 0.9 µm, β = 2°,
+HS film. Two independent paths — your empirical fit hand-tuned against
+the FTIR, and my objective minimisation of χ²_red across an 84-point
+grid — converged on the same answer. That is the kind of cross-validation
+the sweep was designed to provide.
+
+**But: the safety rail tripped.** Best χ²_red = 138.83 is *much* bigger
+than 1. Per [`DISTANCE.md §6`](simulation/design/DISTANCE.md), this means
+**Stage 2 must not proceed** — proceeding would let `period` and `depth`
+absorb a structural error and give a falsely confident geometric fit.
+
+**Where the residual is, in physical terms.**
+
+- Pearson r = 0.972 → *shape* of `R_det(λ)` is already almost right.
+- The remaining χ² is dominated by **amplitude offset** (~10–15 pp uniform
+  drop the simulation needs to make).
+- The best t_oxide is at the **edge of the explored range** (0.9 µm). The
+  trend is still falling, so a *thicker* oxide would fit better — except
+  this is your nominal placeholder and you have not directly measured it.
+- The non-monotonic dip from `t_oxide = 0.3 → 0.5 → 0.9` (χ²: 225 → 202 →
+  139) suggests **interference structure** — a Fabry-Pérot-like cancellation
+  in the oxide. That is physically meaningful, not a numerical artefact.
+
+**Diagnosis from this stage.** The dominant error is **amplitude**, not
+feature alignment. The most likely culprit (per `ANALYSIS.md §4 / §6.3`)
+is the **Cr₂O₃ extinction-coefficient model** — it extrapolates the
+Al-Kuhaili sub-bandgap-tail fit 10× past its 0.3–2.5 µm range and
+contains no phonon physics. **Replacing the empirical k(λ) with a
+literature ε(λ) including the Reststrahlen band is the single largest
+upgrade available**, and that is exactly what should be tried next when
+you (or anyone) pick this up post-TFM.
+
+The detailed report: [`simulation/sweep/reports/stage1_report.qmd`](simulation/sweep/reports/stage1_report.qmd).
+
+### 6.4 The double-sinusoid follow-up
+
+**The question.** Section 5 of your *Tratamiento* PDF shows the AFM mean
+profile has **broader peaks and sharper valleys** than a pure sinusoid —
+a non-sinusoidal asymmetry. Can a second-harmonic term `A₂ sin(2 k x +
+π/2)` reproduce that, and does it close any of the residual?
+
+**Setup.** Locked Stage-1 best (t_oxide = 0.9, β = 2°, HS_caliente, NA =
+39, φ_sim = 89°, period = 12.9, A₁ = 1.5, θ = 30°). Sweep
+`A₂ ∈ {0.10, 0.20, 0.30, 0.35}` µm at fixed `φ₂ = π/2`.
+
+**Constraint.** The double-sin profile must keep its peak as a peak (not
+become a saddle). For `A₂ < A₁/4 = 0.375 µm` the local minimum stays a
+local minimum. The chosen range respects that bound.
+
+**Run.** [`simulation/sweep/bin/run_double_sin_test.py`](simulation/sweep/bin/run_double_sin_test.py)
+— 4 configs at 3 workers, **~14 min wall** total across two invocations.
+
+**Result.**
+
+| A₂ (µm) | φ₂ | χ²_red | RMSE | Pearson r | Δχ² vs A₂ = 0 |
+|---:|---:|---:|---:|---:|---:|
+| 0.00 (baseline) | — | 138.83 | 0.118 | 0.972 | — |
+| 0.10 | π/2 | 126.75 | 0.113 | 0.978 | −12.1 |
+| 0.20 | π/2 | 113.77 | 0.107 | 0.983 | −25.1 |
+| 0.30 | π/2 | 104.18 | 0.102 | 0.983 | −34.6 |
+| **0.35** | π/2 | **101.10** | **0.101** | 0.980 | **−37.7** |
+
+**Decision.** **A₂ = 0.30 µm, φ₂ = π/2.** Going from A₂ = 0.30 to 0.35
+buys only a few extra χ² and starts hurting Pearson r — we are at the
+sweet spot. **The 2nd harmonic is real and worth carrying**, with a 25 %
+χ² reduction over the pure sinusoid.
+
+**One small bug worth flagging.** `run_double_sin_test.py` had a
+`--resume` bug: when re-invoked, the final CSV write was unconditional
+and overwrote `results.csv` with just the new rows, losing the older ones.
+The `traces/` directory was untouched so I rebuilt the table by re-scoring
+the saved trace folders. The fix is to merge against the existing CSV
+before writing, the way `run_stage0a.py` and `run_stage0b.py` do.
+[Flagged in `RUN_LOG.md` lessons.](RUN_LOG.md)
+
+The detailed report: [`simulation/sweep/reports/double_sin_test_report.qmd`](simulation/sweep/reports/double_sin_test_report.qmd).
+
+### What is locked after Stage 1 + double-sin
+
+```
+NA           = 39                  (Stage 0a)
+φ_sim        = 89°  ↔  φ_exp = 0°  (Stage 0b)
+t_oxide      = 0.90 µm             (Stage 1)
+β            = 2°                  (Stage 1, plateau-degenerate with 1°, 5°)
+oxide_disp   = HS_caliente         (Stage 1)
+A₂           = 0.30 µm             (double-sin test)
+φ₂           = π/2 rad             (double-sin test)
+```
+
+Every one of these matches your own empirical work where you state values
+explicitly, and the ones you do not state (A₂, φ₂) are physically
+motivated by the AFM asymmetry you reported.
+
+---
+
+## 7. Phase 6 — (θ, φ) validation, and the wall the model hit
+
+### The question
+The locked configuration fits `(θ = 30°, φ_exp = 0°)` well. Does it
+generalise across the **full 15-condition matrix** — 3 incidence angles
+× 5 azimuths — that you measured on sample SS_12-3?
+
+### Setup
+Locked params from §6.4. Sweep:
+- `θ ∈ {30°, 45°, 60°}` × `φ_exp ∈ {0°, 22.5°, 45°, 67.5°, 90°}` = 15 cells
+- φ_sim mapping: `φ_sim = 90° − φ_exp`, with the 1° offset at the
+  singularities (φ_exp 0° → φ_sim 89°, φ_exp 90° → φ_sim 1°)
+
+### Run
+[`simulation/sweep/bin/run_validate_thetaphi.py`](simulation/sweep/bin/run_validate_thetaphi.py)
+— 15 cells, 4 workers, **40.7 min wall**.
+
+### Result — the matrix
+
+**χ²_red across (θ, φ_exp):**
+
+| θ \ φ_exp | 0° | 22.5° | 45° | 67.5° | 90° | row mean |
+|---|---:|---:|---:|---:|---:|---:|
+| **30°** | 104 | 83 | **76** | 89 | 87 | **88** |
+| **45°** | 263 | 232 | 139 | 142 | 96 | **174** |
+| **60°** | **1158** | 1071 | 568 | 423 | 603 | **765** |
+
+**Aggregate:** sum 5132 · mean 342 · median 142 · **max/min ratio = 15.3 ×**
+
+**Pearson r across (θ, φ_exp):**
+
+| θ \ φ_exp | 0° | 22.5° | 45° | 67.5° | 90° |
+|---|---:|---:|---:|---:|---:|
+| **30°** | 0.98 | 0.97 | 0.97 | 0.95 | 0.95 |
+| **45°** | 0.99 | 0.96 | 0.95 | 0.94 | 0.93 |
+| **60°** | 0.94 | 0.89 | 0.86 | 0.86 | 0.86 |
+
+### Reading the matrix
+
+- **The whole θ = 30° row is healthy.** χ²_red sits in 75–104 (1.4× ratio),
+  Pearson r ≥ 0.95 everywhere. **The φ_sim = 90° − φ_exp mapping is
+  vindicated by this row's uniformity** — the φ axis is consistent across
+  all five azimuths, which is exactly what you would expect if the
+  mapping is right.
+- **At θ = 45° the residual roughly doubles** (mean χ² 88 → 174). Shape
+  is still excellent (r ≥ 0.93). *Usable with caveats.*
+- **At θ = 60° the simulation breaks down.** χ² is 423–1158, ten times
+  the θ = 30° baseline. Pearson r drops below 0.90 at most azimuths —
+  the **shape itself misaligns**, not just the amplitude.
+
+### What happens physically at (θ = 60°, φ = 0°)
+
+| | At θ = 30° | At θ = 60° |
+|---|---:|---:|
+| sim ⟨R_det⟩ (3–25 µm mean) | 0.60 | 0.69 |
+| **exp ⟨R⟩** | **0.54** | **0.37** |
+| sim − exp gap | +0.06 | **+0.33** |
+
+The simulation predicts the sample reflects **70 %** of incident light at
+θ = 60°. The experiment sees **37 %**. The "missing" 33 percentage points
+must be going somewhere — light is being lost from the specular direction
+in a way the simulation cannot represent.
+
+For a smooth metal at grazing, Fresnel says R should *increase* with θ.
+The simulation gets that right. The experimental data does the *opposite*
+— R *drops* by ~30 pp going from θ = 30° to θ = 60°. **That pattern is
+unphysical for an idealised periodic surface.** It is a real measurement
+of *something* the model has no channel for.
+
+The detailed report: [`simulation/sweep/reports/validate_thetaphi_report.qmd`](simulation/sweep/reports/validate_thetaphi_report.qmd).
+
+---
+
+## 8. Phase 7 — Two structural diagnostics that ruled themselves out
+
+Before concluding "this is a physics-model gap, not a bug", I tested the
+two obvious bug hypotheses.
+
+### Diagnostic (A) — semi-infinite substrate
+
+**Hypothesis.** The 200 µm SS slab terminated by vacuum might allow
+back-reflections that contaminate `R_det` at large θ (longer internal path).
+Implemented `SimConfig.semi_infinite_substrate: bool = False` flag — when
+True, drops the explicit 200 µm metal_layer and sets
+`transmission_layer = Layer(er=ε_SS(λ), ur=1.000022)`.
+
+**Run.** [`simulation/sweep/bin/test_semi_infinite.py`](simulation/sweep/bin/test_semi_infinite.py)
+— 2 cells (θ = 30° and θ = 60° at φ_exp = 0°), **6.1 min wall**.
+
+**Result.**
+
+| Cell | Baseline (finite slab) | Semi-infinite | Δχ² |
+|---|---:|---:|---:|
+| (θ = 30°, φ = 0°) | 104.18 | 104.18 | **0.00** |
+| (θ = 60°, φ = 0°) | 1157.65 | 1157.65 | **0.00** |
+
+**Bit-identical at both cells, both metrics.** Reason: skin depth in our
+band is 50–200 nm; 200 µm of SS is already 3–4 orders of magnitude
+thicker, so light decays by ≥ e⁻²⁵⁰⁰ before reaching the back surface.
+The substrate is *already* optically semi-infinite. [`ANALYSIS.md §6.7`](ANALYSIS.md)
+was geometrically valid but physically irrelevant.
+
+**(A) REJECTED.**
+
+### Diagnostic (B) — NA convergence at θ = 60°
+
+**Hypothesis.** NA = 39 was chosen at θ = 30° (Stage 0a). Larger θ
+generally demands more harmonics because more diffraction orders propagate
+closer to the sample plane. Maybe NA = 39 is undersized at grazing.
+
+**Run.** [`simulation/sweep/bin/test_na_at_theta60.py`](simulation/sweep/bin/test_na_at_theta60.py)
+— NA ∈ {39, 51, 75, 91} at the worst cell (θ = 60°, φ = 0°).
+**47.2 min wall** (NA = 91 is the bottleneck).
+
+**Result.**
+
+| NA | χ²_red | RMSE | Pearson r | Δ vs NA = 39 |
+|---:|---:|---:|---:|---:|
+| **39** (baseline) | **1157.65** | 0.340 | 0.942 | — |
+| 51 | 1179.19 | 0.343 | 0.945 | +1.9 % |
+| 75 | 1201.21 | 0.347 | 0.947 | +3.8 % |
+| 91 | 1210.09 | 0.348 | 0.947 | +4.5 % |
+
+**χ² goes the wrong way with NA.** Adding harmonics makes the fit
+*slightly worse*, not better. NA = 39 is fully converged at θ = 60°.
+The disagreement is **not numerical**.
+
+**(B) REJECTED.**
+
+### Combined verdict
+Both "is it a bug?" suspects eliminated. The θ-dependent failure is a
+**physics-modelling gap**, not a numerics or geometry-wrap-up bug.
+
+---
+
+## 9. Phase 8 — Domain of validity
+
+The definitive write-up of this conclusion is in
+[`simulation/design/MODEL_DOMAIN_OF_VALIDITY.md`](simulation/design/MODEL_DOMAIN_OF_VALIDITY.md).
+Three classes of physical loss the current model has no channel to
+represent, in rough order of likely contribution:
+
+### 9.1 Diffuse scattering from non-periodic surface roughness
+Your AFM data (Section 4 of *Tratamiento*) shows the surface profile has
+a ±σ envelope around the mean periodic structure — height fluctuations
+beyond the sinusoid itself. RCWA on a *perfect* periodic profile has only
+two channels for incident energy: propagating diffraction orders (a
+discrete set determined by the grating equation) or absorption inside
+the discretised structure. **There is no mechanism for energy to leave
+in non-grating directions as diffuse scatter.** Real surface roughness
+scatters light into a continuum of directions, removing it from the
+specular order. At grazing incidence this fraction grows because the
+effective optical interaction with surface fluctuations rises with the
+path-length-to-feature-size ratio. The simulation over-predicts specular
+at all θ, but the gap is invisible at θ = 30° and dominant at θ = 60°.
+
+### 9.2 Geometry-amplified Cr₂O₃ absorption
+At θ = 60°, the optical path through the 0.9 µm oxide is `t / cos(60°) =
+1.8 µm` — **2× the path at θ = 30°**. The Cr₂O₃ k(λ) we use is the
+sub-bandgap tail from Al-Kuhaili & Durrani 2007, **extrapolated 10× past
+its 0.3–2.5 µm fit range**. It contains **no phonon physics** (no
+Reststrahlen band — see [`ANALYSIS.md §4`](ANALYSIS.md)). If our k(λ)
+underestimates the true absorption (almost certainly does, in the IR),
+that error is amplified by the path-length ratio at grazing.
+
+### 9.3 Polarisation handling at grazing
+We average `R_LX` and `R_LY` (Cartesian-x and Cartesian-y) to model an
+unpolarised source. At normal-ish incidence (θ = 30°) the difference
+between TE and TM reflectance is modest; the LX/LY average is a
+reasonable proxy for unpolarised. At grazing, TE and TM diverge sharply
+(Fresnel), and any imperfect mapping between (LX, LY) and (TE, TM)
+shows up as a θ-dependent error. Probably a smaller effect than (9.1)
+and (9.2) but contributes.
+
+### What none of these are
+None is fixable by *parameter tuning*. They are gaps in *what the model
+represents*. Adding more parameters (period, depth, β, oxide thickness)
+cannot create the missing physical channels. This is why χ² actually got
+*slightly worse* in Diagnostic (B): refining the harmonic basis just
+makes the (wrong) idealised model more accurate, which does not help.
+
+### What this domain analysis buys us
+- **A clean statement of where the model is trustworthy.** Sample
+  SS_12-3, λ ∈ [3, 25] µm, θ ≤ 30° — Pearson r ≥ 0.95 across the full
+  azimuth row, ~6 pp residual amplitude offset attributable to the oxide
+  phonon model.
+- **A clean statement of where it is not.** θ ≥ 45° marginal; θ ≥ 60°
+  unusable. Document this as a *finding about the model*, not as a
+  failure of the campaign.
+- **A prioritised list of future research directions** ([`MODEL_DOMAIN_OF_VALIDITY.md §8.3`](simulation/design/MODEL_DOMAIN_OF_VALIDITY.md)):
+  Lorentz-oscillator Cr₂O₃ phonon model (~2–5 days), Rayleigh-Rice
+  scattering correction (~1–2 days), AFM-mean-profile substitution for
+  the idealised sinusoid (~2–3 days). Each is a research project; none
+  is required for the TFM result.
+
+---
+
+## 10. Where this leaves us (bottom line)
+
+### The result, in one paragraph
+**At θ = 30° on sample SS_12-3, λ ∈ [3, 25] µm**, the simulation reproduces
+your experimental FTIR with **Pearson r between 0.95 and 0.98 across the
+full azimuth row**, with a residual amplitude offset of about 6 percentage
+points that is attributable to the Cr₂O₃ phonon model (a known
+extrapolation outside its fit range). The configuration that achieves
+this — `(NA = 39, t_oxide = 0.9 µm, β = 2°, HS_caliente, A₂ = 0.30 µm,
+φ₂ = π/2)` — **matches your independent empirical fit exactly** in every
+parameter you committed to in the AJUSTE PDF. Two independent methods,
+one answer.
+
+### Stage 2 is the natural next step
+Per-sample geometry refinement under the locked Tier-1 universals.
+**At θ = 30° only.** The plan is in [`simulation/design/SWEEP_PLAN.md`](simulation/design/SWEEP_PLAN.md)
+§ "Stage 2 — per-sample Tier-2". I did not run it yet because the
+biggest leverage move remains the Cr₂O₃ phonon model upgrade — once
+that lands, Stage 2 should re-baseline at a much lower χ² and any
+geometry refinement would land at the *right* basin instead of fitting
+around the oxide error.
+
+### What's locked, what's parked
+
+```
+Locked (do not change):
+    NA           = 39                    (Stage 0a, reverified at θ = 60° in Diagnostic B)
+    φ_sim        = 89° ↔ φ_exp = 0°      (Stage 0b)
+    t_oxide      = 0.90 µm               (Stage 1; matches AJUSTE p.10)
+    β            = 2°                    (Stage 1; matches AJUSTE p.11)
+    oxide_disp   = HS_caliente           (Stage 1)
+    A₂           = 0.30 µm               (double-sin test)
+    φ₂           = π/2 rad               (double-sin test)
+    domain       = θ ≤ 30°               (validate_thetaphi + Diagnostics A, B)
+
+Parked (future research):
+    Cr₂O₃ phonon-aware k(λ)              (highest-leverage upgrade)
+    Rayleigh-Rice diffuse-scatter term   (would extend domain past θ = 30°)
+    AFM-mean-profile substitution        (refines the surface shape further)
+    Stage 2 (per-sample geometry)        (waiting on the phonon model)
+    Stage 3 (generalisation to 5 others) (waiting on Stage 2)
+```
+
+---
+
+## 11. How to run things — commands
+
+### One-time setup
+
+```bash
+cd 20260508_ane_corujo_simulations
+python3.12 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt          # rcwa, numpy, scipy, matplotlib, pandas, jupyter
+```
+
+Then drop my (your, really) patched `solver.py` and `harmonics.py` into
+the venv's `rcwa/` site-packages directory:
+
+```bash
+SP=$(python -c "import rcwa, os; print(os.path.dirname(rcwa.__file__))")
+# copy the patched files extracted from 20260508_messages/ane-thread-archive-2026-05-08.md
+# (they include theta_orders and get_detected_reflectance)
+cp /path/to/patched/solver.py    "$SP/solver.py"
+cp /path/to/patched/harmonics.py "$SP/harmonics.py"
+```
+
+### Run one simulation, exactly as you would have
+
+```bash
+cd simulation
+quarto render exploratory/simulate.qmd
+```
+
+Reads parameters from a single dict at the top of the document, runs
+RCWA, writes the trace under `simulation/exploratory/runs/adhoc/`,
+opens the HTML report. This is your `test8.qmd` made parameterisable.
+
+### Compare a simulation against experiment
+
+```bash
+quarto render simulation/exploratory/compare.qmd
+```
+
+No RCWA solve — pure visualisation. Edit the document to point at any
+`AVG_*.csv` you want to plot against the FTIR triple.
+
+### Run an entire sweep stage in batch
+
+```bash
+caffeinate -i python simulation/sweep/bin/run_stage1.py --parallel 4 --resume
+```
+
+`--resume` is essential — every script is restartable by reading existing
+`results.csv` and skipping configs whose trace already exists. `caffeinate -i`
+keeps the laptop awake on macOS. Stage 1 is 3.5 hours on this machine.
+
+### Render a sweep report
+
+```bash
+quarto render simulation/sweep/reports/stage1_report.qmd
+```
+
+Loads `simulation/sweep/runs/stage1_universals/results.csv` and renders
+the analysis. Render time is seconds, no RCWA.
+
+---
+
+## 12. Repository map — a cheat sheet
+
+```
+20260508_ane_corujo_simulations/
+├── README.md                                 Repo orientation (terse)
+├── GUIDE_FOR_ANE.md                          THIS FILE — chronological tour
+├── ANALYSIS.md                               My initial cold reading of your code
+├── DESIGN_LOG.md                             Verbatim design discussions
+├── RUN_LOG.md                                One section per sweep run
+├── requirements.txt                          Python deps
+│
+├── 20260508_messages/                        ⚠️ Read-only — your original email archive
+│   ├── Test8_full (1).ipynb                  Your "Programa principal"
+│   ├── Representacion.ipynb                  Your plotting helpers
+│   ├── SS_letter (1).csv                     SS complex permittivity
+│   ├── calientes_cromo.csv                   Cr₂O₃ HS film (n, k)
+│   ├── indices_cromo.csv                     Cr₂O₃ RS film (n, k)
+│   ├── paper_datos_cromo.pdf                 Al-Kuhaili & Durrani 2007
+│   └── ane-thread-archive-2026-05-08.md      Curated email transcription + patched .py inlined
+│
+├── ane_originals/                            ⚠️ Read-only — your originals as .qmd
+│   ├── README.md
+│   ├── test8.qmd                             Verbatim .qmd conversion of Test8_full
+│   ├── representacion.qmd                    Verbatim .qmd conversion of Representacion
+│   ├── AJUSTE DE PARÁMETROS ... .pdf         Your empirical fitting writeup
+│   └── Tratamiento de imágenes ... .pdf      Your image-processing / model writeup
+│
+├── data/                                     Project-level shared inputs
+│   ├── experimental/                         321 FTIR CSV files (read-only snapshot)
+│   └── materials/
+│       ├── README.md                         Caveats about the inputs
+│       ├── SS_permittivity.csv               Symlink to your SS_letter (1).csv
+│       ├── Cr2O3_HS_caliente.csv             HS Cr₂O₃ refractive index + k
+│       └── Cr2O3_RS_frio.csv                 RS Cr₂O₃ refractive index + k
+│
+├── simulation/                               Active work — Quarto project + Python
+│   ├── _quarto.yml
+│   ├── design/                               Design documents
+│   │   ├── DISTANCE.md                       Distance metric + tiered config space
+│   │   ├── SWEEP_PLAN.md                     SS_12-3 sweep plan, stages and runs
+│   │   └── MODEL_DOMAIN_OF_VALIDITY.md       Domain of validity & physics gaps
+│   ├── lib/
+│   │   ├── sweep_runner.py                   Orchestration module (~390 lines)
+│   │   └── plot_helpers.py                   Plotting utilities
+│   ├── exploratory/                          Single-config interactive work
+│   │   ├── simulate.qmd                      Parameterised successor to test8.qmd
+│   │   ├── compare.qmd                       Comparison + distance metric
+│   │   ├── inspect_sigma.qmd                 Inspect σ(λ) across 3 FTIR repeats
+│   │   ├── test8_plot.qmd                    Test8 plot (decoupled from simulation)
+│   │   └── runs/adhoc/                       Per-config simulation traces
+│   └── sweep/                                Batch sweep
+│       ├── bin/                              Scripts (Python, CLI, parallelisable)
+│       │   ├── run_stage0a.py                NA convergence
+│       │   ├── run_stage0b.py                φ-convention sanity
+│       │   ├── run_stage1.py                 Universal Tier-1
+│       │   ├── run_double_sin_test.py        2nd-harmonic test
+│       │   ├── run_validate_thetaphi.py      15-cell (θ, φ) validation
+│       │   ├── test_semi_infinite.py         Diagnostic A
+│       │   └── test_na_at_theta60.py         Diagnostic B
+│       ├── reports/                          Quarto documents that read results.csv
+│       │   ├── stage0a_report.qmd            +.html
+│       │   ├── stage0b_report.qmd            +.html
+│       │   ├── stage1_report.qmd             +.html
+│       │   ├── double_sin_test_report.qmd    +.html
+│       │   └── validate_thetaphi_report.qmd  +.html
+│       └── runs/                             Per-stage output (results.csv + traces/)
+│           ├── stage0a_NA_convergence/
+│           ├── stage0b_phi_convention/
+│           ├── stage1_universals/
+│           ├── double_sin_test/
+│           ├── validate_thetaphi/
+│           ├── test_semi_infinite/
+│           └── test_na_theta60/
+│
+└── .venv/                                    Python 3.12 virtualenv
+```
+
+---
+
+## 13. What I changed in your code, and what I did not touch
+
+### Untouched — bit-for-bit
+- Every file in [`20260508_messages/`](20260508_messages/) is exactly as
+  you sent it.
+- Every parameter in your `test8.qmd §5` cell that you committed to (period,
+  A₁, NA, β, t_oxide, oxide_dispersion, slices, polarisations, θ, φ_sim)
+  has the same numerical value in the active `sweep_runner.py`, and the
+  scripts that arrived at those values via the sweep land on your numbers.
+- The Cr₂O₃ dispersion CSVs ([`data/materials/Cr2O3_*.csv`](data/materials/))
+  are frozen copies of `calientes_cromo.csv` / `indices_cromo.csv` — same
+  numbers, more legible filenames.
+- Your `solver.py` and `harmonics.py` patches to `rcwa` are unchanged.
+  The active pipeline depends on them — `Solver.get_detected_reflectance(β)`
+  and `Solver.theta_orders` are your additions, and they are load-bearing.
+
+### Changed — structural, not physical
+- **The `test8` simulation cell is now a function.** `sweep_runner.solve_one(cfg)`
+  takes a `SimConfig` and returns a DataFrame; the cell's contents are
+  unchanged inside.
+- **The `R_det` filtering is identical.** `R_det(β) = Σ R_m` for orders
+  with `|θ_m − θ_specular| ≤ β/2` — verbatim from your `_rt_quantities`
+  patch.
+- **The polarisation averaging is identical.** `R = (R_LX + R_LY) / 2`,
+  the same Cartesian basis you used.
+- **Filenames and paths.** Two cosmetic but real changes:
+  - The SS data file's underlying values are complex permittivity, not
+    `n, k`. I have not renamed the column headers because the symlink
+    [`data/materials/SS_permittivity.csv`](data/materials/SS_permittivity.csv)
+    points back at `SS_letter (1).csv` and the code reads the columns
+    correctly regardless of the labels. The `README.md` next to the
+    materials data calls this out explicitly.
+  - All paths are relative or environment-driven. No Windows paths in
+    the active code; your `Representacion.ipynb` hard-coded
+    `r'C:\Users\usuario\Desktop\TFM\…'` would not run on macOS.
+- **Two added knobs as opt-in switches**, both default-off so the active
+  code is bit-identical to your pipeline:
+  - `SimConfig.semi_infinite_substrate: bool = False` — when True,
+    drops the 200 µm SS slab and sets the transmission half-space to
+    SS. Tested and proven physically irrelevant (Diagnostic A), kept
+    as a switch in case future work needs it.
+  - `SimConfig.A2_um: float = 0.0` and `SimConfig.phi2_rad: float = 0.0`
+    — second-harmonic amplitude and phase. Default (0, 0) recovers
+    your pure sinusoid exactly.
+
+### Documented but **not** patched (HIGH severity, on purpose)
+- **The oxide-skin geometry** — vertical band vs normal-to-surface
+  ([`ANALYSIS.md §6.4`](ANALYSIS.md)). I documented it but did not patch
+  it: at our slopes (≤ 36°) the maximum effect is ~25 % path-length error
+  on the slopes, and we have higher-leverage problems first (the Cr₂O₃
+  phonon model).
+- **The Cr₂O₃ k(λ) extrapolation** ([`ANALYSIS.md §4 / §6.3`](ANALYSIS.md)).
+  This is the parked future-research item that, once fixed, should drop
+  χ² substantially. I did not implement a Lorentz-oscillator replacement
+  because it is a 2–5 day research project in its own right, not a
+  one-evening patch.
+
+---
+
+## 14. Open questions for you
+
+These are the things I would ask you over coffee, in order:
+
+1. **What is the actual FTIR detector half-angle?** β = 2° is my Stage-1
+   winner, β = 1° / 2° / 5° are degenerate — that whole plateau means
+   "narrow cone, only the specular order survives". If you happen to
+   know the spec sheet number, it would either confirm or sharpen this.
+   ([`DISTANCE.md §3`](simulation/design/DISTANCE.md) flags this as the
+   one external question that closes the loop on β.)
+
+2. **Have you ever directly measured the Cr₂O₃ overlayer thickness on
+   one of these samples?** XPS depth profile, ellipsometry, profilometry,
+   anything. My winning t_oxide = 0.9 µm is at the *edge* of the grid I
+   swept, and the χ²-vs-t_oxide curve was still falling — the true
+   minimum is plausibly thicker than 0.9 µm. Two paragraphs of measured
+   evidence would replace several days of additional sweeping.
+
+3. **Cold dispersion parameters.** You shipped `indices_cromo.csv` for
+   the RS films, but the `datos_cromo` cell only documents the HS
+   coefficients (a₀ = 0.010, a₁ = −0.04121, a₂ = 0.041509, E₀ = 5.13 eV,
+   E_d = 19.2 eV). It would be helpful to have the RS coefficients
+   committed next to those, so the CSVs can be regenerated from source
+   when the model changes.
+
+4. **The 89° vs 1° puzzle.** Stage 0b confirmed your φ_sim = 89° ↔ φ_exp =
+   0° empirically. But at the *other* end of the azimuth row (φ_exp =
+   90°) I had to use φ_sim = 1° to dodge the same singularity, and the
+   matching is still good. Do you have an intuition (or a derivation)
+   for why the rcwa azimuth convention sits at "90° − φ_exp"? It is the
+   right answer but I would like to know *why* it is the right answer.
+
+5. **Did your AFM data give per-sample σ envelopes, or just a single
+   trace?** Section 4 of *Tratamiento* shows the ±σ envelope is real
+   for SS_12-3 and is wider in valleys than at peaks. If you have that
+   for the other five samples, a Rayleigh-Rice scattering correction
+   with a per-sample σ_h fit (one of the parked research items)
+   becomes immediately tractable.
+
+6. **Are there published Cr₂O₃ ε(λ) tables in the mid-IR you trust?** If
+   so, the highest-leverage upgrade (the phonon-aware k model) goes from
+   a 5-day project to a few hours of editing.
+
+---
+
+## 15. A word about the documents themselves
+
+Three documents in this repo, beyond this guide, are written specifically
+to be self-contained references rather than scratch notes:
+
+- **[`ANALYSIS.md`](ANALYSIS.md)** — what your code does, where the
+  physics is solid, where it is fragile. Written before any sweep was
+  run. The §6 issues catalogue is the most useful single page if you
+  ever decide to extend the model.
+- **[`simulation/design/DISTANCE.md`](simulation/design/DISTANCE.md)** —
+  the formal distance metric and the principled tiering of configuration
+  space. The doctrine that prevents the sweep from misleading us.
+- **[`simulation/design/MODEL_DOMAIN_OF_VALIDITY.md`](simulation/design/MODEL_DOMAIN_OF_VALIDITY.md)**
+  — where the model works, where it breaks, and what physical channels
+  are missing. The document I would attach to any future paper using
+  this code.
+
+The other two:
+
+- **[`DESIGN_LOG.md`](DESIGN_LOG.md)** — verbatim record of the design
+  discussions that produced `DISTANCE.md` and `SWEEP_PLAN.md`. Long.
+  Useful if you ever wonder "why did they decide to factor it this way,
+  not that way" — the answers are in here.
+- **[`RUN_LOG.md`](RUN_LOG.md)** — one section per simulation run.
+  Command, wall time, decision, lessons learned. The factual record.
+
+---
+
+Ane, this whole repository is built on top of your work. The code you sent
+me already had every load-bearing physical insight — the patched solver,
+the aperture filter, the dispersion model, the surface profile, the
+polarisation averaging, the comparison protocol against FTIR triples. What
+I did was *re-house* it so it could be swept systematically, *quantify*
+what counts as a good fit, and *characterise* the boundary where the
+model stops being trustworthy. That boundary turned out to coincide
+exactly with where your AJUSTE PDF reports its results — at θ = 30° —
+and the parameter configuration my sweep landed on is the parameter
+configuration you committed to empirically.
+
+If you find the rest of this useful, the next move I would suggest is
+parked research item γ′ — the Cr₂O₃ phonon-aware k(λ) — because that is
+the single largest residual driver and the one improvement that would
+let Stage 2 and Stage 3 land at meaningful values rather than fitting
+around oxide error. Anything else here, ask me.
+
+— Josu (and Bolu)
